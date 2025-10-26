@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@motion/*": ["./packages/motion/src/*"],
+      "@components/*": ["./packages/components/src/*"],
+      "@common/*": ["./packages/common/src/*"]
+    } 
+  }
+}
