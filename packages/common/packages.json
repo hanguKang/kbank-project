@@ -1,0 +1,9 @@
+{
+  "name": "@kbank/common",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "react": "^18.0.0"
+  }
+}
