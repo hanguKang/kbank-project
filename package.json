@@ -1,0 +1,9 @@
+{
+  "name": "k-project",
+  "workspaces": [
+    "packages/core",
+    "packages/components", 
+    "packages/motion",
+    "packages/pages"
+  ]
+}
