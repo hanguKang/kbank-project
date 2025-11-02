@@ -12,7 +12,6 @@ export const ListComponent: React.FC<ListComponentProps> = ({
   itemCount = 50,
   itemHeight = '36px',
   padding = '8px',
-  maxHeight = '400px',
   style
 }) => {
   const items = Array.from({ length: itemCount }, (_, index) => ({
@@ -23,8 +22,6 @@ export const ListComponent: React.FC<ListComponentProps> = ({
   return (
     <ul
       style={{
-        maxHeight,
-        overflowY: 'auto',
         border: '1px solid #eee',
         borderRadius: '8px',
         margin: 0,

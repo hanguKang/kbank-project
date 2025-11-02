@@ -1,12 +1,64 @@
+// src/motion/ParallaxTransition.tsx
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useScroll, useSpring, useTransform, useMotionValue } from 'framer-motion';
 
 interface ParallaxTransitionProps {
-  section1Content: React.ReactNode; // Section1의 이미지 DIV (Fixed)
-  section2Content: React.ReactNode; // Section2의 제목 및 목록
-  headerHeight?: number; // 기본값 40px
-  onScrollEnd?: (isEnd: boolean) => void; // 스크롤 끝났을 때 show 클래스 대체
+  section1Content: React.ReactNode; // imgWrapper 내부 콘텐츠 (이미지 + 제목)
+  section2Content: React.ReactNode; // div.section2 내용 (Sticky Title + 목록)
+  headerHeight?: number; 
+  onScrollEnd?: (isEnd: boolean) => void; 
 }
+
+// =========================================================================
+// Section1Wrapper (div.section1 역할: 높이 측정 및 공간 확보)
+// =========================================================================
+const Section1Wrapper: React.FC<{ 
+    children: React.ReactNode; 
+    setHeight: (h: number) => void;
+    currentHeight: number;
+    // imgWrapper에 대한 Ref를 받기 위한 props
+    contentRef: React.RefObject<HTMLDivElement | null>; 
+  }> = ({ children, setHeight, currentHeight, contentRef }) => {
+  
+  // 1. imgWrapper의 높이를 getBoundingClientRect로 측정
+  const measure = useCallback(() => {
+    if (contentRef.current) {
+      // getBoundingClientRect().height 사용: 가장 정확한 렌더링된 높이 반환
+      const rect = contentRef.current.getBoundingClientRect();
+      const height = rect.height;
+      
+      // 높이 값이 유효하고 변경된 경우에만 업데이트
+      if (height > 0 && height !== currentHeight) {
+          setHeight(height);
+          // console.log('📐 [S1 Height] Measured via getBoundingClientRect:', height);
+      }
+    }
+  }, [setHeight, currentHeight, contentRef]);
+
+  // DOM이 준비되었을 때와 윈도우 크기가 변경될 때 측정
+  useEffect(() => {
+    measure(); 
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+
+  // 2. div.section1의 높이 역할을 수행하는 래퍼 (position: static)
+  return (
+    <div 
+      // div.section1 역할: 높이 확보. currentHeight만큼 높이를 강제로 갖습니다.
+      style={{ 
+        height: currentHeight > 0 ? currentHeight : 'auto', 
+        position: 'relative', 
+        zIndex: 10,
+        marginTop: '0px' // Header 공간은 App.tsx에서 별도의 Div로 확보합니다. (ParallaxTransition의 부모에서 처리)
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+// =========================================================================
 
 export const ParallaxTransition: React.FC<ParallaxTransitionProps> = ({
   section1Content,
@@ -14,127 +66,129 @@ export const ParallaxTransition: React.FC<ParallaxTransitionProps> = ({
   headerHeight = 40,
   onScrollEnd
 }) => {
+  // imgWrapper 내부 콘텐츠의 높이 (section1Wrapper의 height으로 사용됨)
+  const [section1ContentHeight, setSection1ContentHeight] = useState(0); 
   const [scrollState, setScrollState] = useState<'external' | 'internal'>('external');
-  const [section1Height, setSection1Height] = useState(0);
   
-  const section1ImageRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // 전체 컨테이너 Ref
-  const secondSectionRef = useRef<HTMLDivElement>(null);
+  // imgWrapper 역할을 하는 motion.div에 연결할 Ref 생성
+  const section1ContentRef = useRef<HTMLDivElement>(null); 
+  
+  const { scrollY, scrollYProgress } = useScroll();
+  const y = useMotionValue(0);
+  
+  // Section2가 뷰포트 상단(Header 아래)에 도달하는 총 스크롤 양
+  const transitionPoint = section1ContentHeight; // Section1Wrapper 높이
+                                                 // Header 높이는 App.tsx에서 margin-top으로 처리되므로,
+                                                 // 스크롤 양은 Section1 Content Height만큼 올라가면 Section2가 뷰포트에 도달함.
 
-  // Framer Motion 스크롤 훅: 전체 페이지 스크롤 위치를 추적
-  const { scrollY } = useScroll();
-
-  // 1. Section1 높이 측정 (Section2가 만나야 할 지점 = 이미지 높이)
-  const measureHeight = useCallback(() => {
-    if (section1ImageRef.current) {
-      // 이미지 Div의 높이를 측정 (이 높이가 Section2의 스크롤 시작점)
-      const height = section1ImageRef.current.offsetHeight;
-      setSection1Height(height);
-      console.log('📐 [Height Check] Section1 Height Measured:', height);
-    }
-  }, []);
-
-  useEffect(() => {
-    measureHeight();
-    window.addEventListener('resize', measureHeight);
-    return () => window.removeEventListener('resize', measureHeight);
-  }, [measureHeight]);
-
-  // 2. Section1 (Image)의 패럴랙스 Y 변환 계산
-  // 스크롤 범위: [0, Section2가 Section1을 만나기 직전 (section1Height)]
+                                                 
+  // 1. imgWrapper의 패럴랙스 Y 변환 계산
+  // 스크롤 범위: [0, transitionPoint]
   // Y 변환 범위: [0, -45] (위로 -45px 이동)
-  const parallaxY = useTransform(
+const parallaxY = useTransform(
     scrollY,
-    [0, section1Height],
-    [0, -45],
+    [0, transitionPoint], 
+    [0, -45], 
     { clamp: true } 
-  );
+);
   
-  // Section1 이미지 Div에는 부드러운 Spring 효과 적용
+  // ⭐️ useSpring을 사용하여 렌더링 안정성을 확보하되, 
+  //    물리 파라미터를 조정하여 지연을 거의 없앰 (즉각 반응)
   const smoothParallaxY = useSpring(parallaxY, {
-    stiffness: 100,
-    damping: 20
+    stiffness: 20000, // ⭐️ 강성: 매우 높은 값으로 설정하여 즉각 목표치로 이동
+    damping: 2000,    // ⭐️ 감쇠: 매우 높은 값으로 설정하여 진동(지연)을 즉시 소멸
+    mass: 2,          // 질량: 기본값 또는 작은 값 유지
   });
 
-  // 3. 스크롤 상태 전환 및 헤더 클래스 부착 로직
-  useEffect(() => {
-    if (section1Height <= 0) return;
+  // 2. Header Title 클래스 부착 로직
+  // useEffect(() => {
+  //   if (section1ContentHeight <= 0) return;
 
-    // Header Title 클래스 제어
-    const handleScrollEnd = (latestScroll: number) => {
-      // 스크롤이 Section1 영역을 벗어나 Section2 내부 영역에 들어섰을 때
-      const isInternal = latestScroll >= section1Height;
+  //   const handleScrollEnd = (latestScroll: number) => {
+  //     // 스크롤이 Section1 영역을 벗어나 Section2 영역에 진입하는 지점
+  //     const isInternal = latestScroll >= transitionPoint;
+      
+  //     const newScrollState = isInternal ? 'internal' : 'external';
+  //     if (newScrollState !== scrollState) {
+  //       setScrollState(newScrollState); 
+  //     }
 
-      if (isInternal && scrollState === 'external') {
-        console.log('✅ [State Change] Transition to INTERNAL scroll.');
-        setScrollState('internal');
-      } else if (!isInternal && scrollState === 'internal') {
-        console.log('🔙 [State Change] Transition to EXTERNAL scroll.');
-        setScrollState('external');
-      }
+  //     onScrollEnd?.(isInternal);
+  //   };
 
-      // 최종 스크롤 종료 (Section2의 내용 스크롤이 끝남) 판단 로직은 여기에 직접 구현하기 어려움.
-      // 여기서는 Section2 영역 진입 시 `show` 클래스가 붙는다고 가정합니다.
-      onScrollEnd?.(isInternal);
-    };
+  //   const unsubscribe = scrollY.on('change', handleScrollEnd);
+  //   handleScrollEnd(scrollY.get()); 
 
-    const unsubscribe = scrollY.on('change', handleScrollEnd);
+  //   return () => unsubscribe();
+  // }, [scrollY, transitionPoint, scrollState, onScrollEnd, section1ContentHeight]);
 
-    // 초기 상태 체크 (새로고침 시)
-    handleScrollEnd(scrollY.get()); 
+useEffect(() => {
+    // 💡 transitionPoint가 0이 아니며 유효한 값일 때만 로직 실행
+    if (transitionPoint === 0) return;
+
+    // ⭐️ scrollY 값의 변화를 감지하고 y.set()으로 변환을 수동 적용
+    const unsubscribe = scrollY.on('change', (latestScrollY) => {
+      // 1. 현재 스크롤 위치가 Section 1 범위를 벗어나지 않도록 클램프(clamp)
+      //    스크롤 범위: [0, transitionPoint]
+      const clampedScroll = Math.max(0, Math.min(latestScrollY, transitionPoint));
+      
+      // 2. 스크롤 진행률 (0.0 ~ 1.0) 계산
+      const progress = clampedScroll / transitionPoint; 
+      
+      // 3. 변환: (0.0 -> 1.0) 진행률을 원하는 이동 범위 (0 -> -45)로 매핑
+      //    (total 이동거리: 45px)
+      const targetY = progress * -45; 
+      
+      // 4. y MotionValue 업데이트 (즉각적인 반응)
+      y.set(targetY);
+    });
 
     return () => unsubscribe();
-  }, [scrollY, section1Height, scrollState, onScrollEnd]);
+  }, [scrollY, transitionPoint, y]); // 💡 transitionPoint가 변경될 때마다 재실행
 
   return (
-    <>
+    <div>
       {/* Debug UI (Optional) */}
       <div style={{ position: 'fixed', top: 0, left: 10, zIndex: 9999, backgroundColor: 'yellow', padding: '5px', fontSize: '12px' }}>
-        Status: **{scrollState.toUpperCase()}** | S1 Height: {section1Height}px | Header H: {headerHeight}px
-      </div>
-
-      {/* 1. Header (40px Fixed) - 요구사항 1 */}
-      {/* Header 컴포넌트는 외부에서 top: 0, height: 40px, zIndex: 100으로 Fixed 되어있다고 가정 */}
-      <div style={{ height: headerHeight, backgroundColor: '#333', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, color: 'white' }}>
-        Header (Height: {headerHeight}px) <span className={scrollState === 'internal' ? 'show' : ''}>[Title Component]</span>
+        S1 H: {section1ContentHeight.toFixed(0)}px | Trans. Point: {transitionPoint.toFixed(0)}px | Y: {smoothParallaxY.get().toFixed(1)}
       </div>
       
-      {/* 2. Section1 Content (Fixed Image Div + Parallax) - 요구사항 2 */}
-      {/* Image Div 자체는 Fixed로 뷰포트에 고정 */}
-      <motion.div
-        ref={section1ImageRef}
-        style={{
-          position: 'fixed',
-          top: headerHeight, // Header 바로 아래에서 시작
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          y: smoothParallaxY // 0 -> -45px 패럴랙스 이동
-        }}
+      {/* 1. div.section1 역할: 높이 확보 */}
+      <Section1Wrapper 
+        setHeight={setSection1ContentHeight} 
+        currentHeight={section1ContentHeight}
+        contentRef={section1ContentRef} 
       >
-        {section1Content}
-      </motion.div>
+        {/* 1-1. div.imgWrapper 역할: position: fixed + motion.div 적용 */}
+        <motion.div
+          ref={section1ContentRef} // motion.div에 Ref 연결 -> 높이 측정 대상
+          style={{
+            position: 'fixed', 
+            top: headerHeight,  // Header 바로 아래에서 고정 시작
+            left: 0,
+            right: 0,
+            width: '100%',
+            //y: smoothParallaxY, // Parallax 이동
+            //y: parallaxY, // Parallax 이동
+            y: y,
+            zIndex: 10 
+          }}
+        >
+          {/* Section1 Content (이미지 + 제목) */}
+          {section1Content}
+        </motion.div>
+      </Section1Wrapper>
 
-      {/* 3. Section1의 공간 확보를 위한 Spacer */}
-      {/* Section1 높이만큼 Spacer를 배치하여 Section2가 스크롤될 공간을 만듭니다. */}
-      <div style={{ height: section1Height + headerHeight }} />
-
-      {/* 4. Section2 Content (Relative + Sticky Title) - 요구사항 3 */}
+      {/* 2. div.section2 역할: position: relative */}
       <div
-        ref={containerRef}
         style={{
-          position: 'relative',
-          zIndex: 20, // Section1 (z-index: 10) 위로 올라옴
-          backgroundColor: 'white' // Section1을 덮을 때 배경색 필요
+          position: 'relative', 
+          zIndex: 20, // Section1을 덮음
+          backgroundColor: 'white'
         }}
       >
-        {/* Section2 내부 콘텐츠 (제목과 목록) */}
         {section2Content}
-        
-        {/* 참고: Section2 내부의 Sticky 제목 구현은 CSS와 구조로 처리 */}
-        {/* <div style={{ position: 'sticky', top: headerHeight, zIndex: 30 }}>제목</div> */}
-        {/* 목록은 그 아래에서 스크롤됨 */}
       </div>
-    </>
+    </div>
   );
 };

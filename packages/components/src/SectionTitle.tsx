@@ -8,14 +8,16 @@ interface SectionTitleProps {
 
 export const SectionTitle: React.FC<SectionTitleProps> = ({ 
   children, 
-  marginBottom = "16px"
+  marginBottom = "16px",
+  style
 }) => {
   return (
     <h3 style={{
       margin: `0 0 ${marginBottom} 0`,
       fontSize: '18px',
       fontWeight: 'bold',
-      color: '#333'
+      color: '#333',
+      ...style
     }}>
       {children}
     </h3>

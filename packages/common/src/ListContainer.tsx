@@ -14,7 +14,6 @@ export const ListContainer: React.FC<ListContainerProps> = ({
     <div
       style={{
         maxHeight,
-        overflowY: 'auto',
         border: '1px solid #eee',
         borderRadius: '8px'
       }}
