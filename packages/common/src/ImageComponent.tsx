@@ -5,6 +5,7 @@ interface ImageComponentProps {
   alt?: string;
   width?: string;
   height?: string;
+  maxWidth?: string;
   marginBottom?: string;
 }
 
@@ -13,6 +14,7 @@ export const ImageComponent: React.FC<ImageComponentProps> = ({
   alt = "이미지",
   width = "100%",
   height = "200px",
+  maxWidth,
   marginBottom = "16px"
 }) => {
   return (
@@ -23,6 +25,7 @@ export const ImageComponent: React.FC<ImageComponentProps> = ({
         style={{
           width,
           height,
+          maxWidth,
           objectFit: 'cover',
           borderRadius: '8px'
         }}

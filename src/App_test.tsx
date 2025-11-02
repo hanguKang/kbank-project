@@ -1,12 +1,12 @@
-import { FixedHeader } from '@components/FixedHeader';
-import { Section} from '@components/Section';
-import { SectionTitle } from '@components/SectionTitle';
-import { TextButtonGroup } from '@components/TextButtonGroup';
-import { ImageComponent } from '@common/ImageComponent';
-import { ListComponent } from '@common/ListComponent';
-import { ParallaxTransition } from '@motion/ParallaxTransition';
+// src/App.tsx
+import { FixedHeader } from './components/FixedHeader'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { Section} from './components/Section'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { SectionTitle } from './components/SectionTitle'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { TextButtonGroup } from './components/TextButtonGroup'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { ImageComponent } from './common/ImageComponent'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { ListComponent } from './common/ListComponent'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
+import { ParallaxTransition } from './motion/ParallaxTransition'; // 경로를 현재 프로젝트 구조에 맞게 수정하세요.
 import { useState } from 'react';
-
 
 // Section2 내부의 Sticky Title 역할을 수행할 컴포넌트
 const StickySectionTitle: React.FC<{ headerHeight: number }> = ({ headerHeight }) => (
@@ -26,7 +26,7 @@ const StickySectionTitle: React.FC<{ headerHeight: number }> = ({ headerHeight }
 
 function App() {
   const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
-  const headerHeight = 50; // 📌 요구사항: Header 높이 40px 고정
+  const headerHeight = 40; // 📌 요구사항: Header 높이 40px 고정
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
 
   return (

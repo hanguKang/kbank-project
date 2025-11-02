@@ -5,13 +5,15 @@ interface ListComponentProps {
   itemHeight?: string;
   padding?: string;
   maxHeight?: string;
+  style: React.CSSProperties;
 }
 
 export const ListComponent: React.FC<ListComponentProps> = ({
   itemCount = 50,
   itemHeight = '36px',
   padding = '8px',
-  maxHeight = '400px'
+  maxHeight = '400px',
+  style
 }) => {
   const items = Array.from({ length: itemCount }, (_, index) => ({
     id: index + 1,
@@ -27,7 +29,9 @@ export const ListComponent: React.FC<ListComponentProps> = ({
         borderRadius: '8px',
         margin: 0,
         padding: 0,
-        listStyle: 'none'
+        listStyle: 'none',
+        ...style
+
       }}
     >
       {items.map((item) => (

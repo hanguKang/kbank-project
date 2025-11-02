@@ -1,9 +1,13 @@
 // packages/components/src/FixedHeader.tsx
 import React from 'react';
-
-export const FixedHeader: React.FC = () => {
+interface FixedHeaderProps {
+  children: React.ReactNode;
+  titleClassName?: string;
+  style?: React.CSSProperties;
+}
+export const FixedHeader: React.FC<FixedHeaderProps> = ({children, titleClassName, style}) => {
   return (
-    <header style={{
+    <header className={titleClassName} style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -15,10 +19,11 @@ export const FixedHeader: React.FC = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '0 16px',
-      zIndex: 1000
+      zIndex: 1000,
+      ...style
     }}>
       <button>←</button>
-      <h2 style={{ margin: 0, fontSize: '18px' }}>제목</h2>
+      {children}
       <button>관리</button>
     </header>
   );
