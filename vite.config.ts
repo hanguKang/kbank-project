@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@kbank/motion': path.resolve(__dirname, 'packages/motion/src'),
+      '@kbank/motion-playground': path.resolve(__dirname, 'packages/motion/playground'),
       '@motion': path.resolve(__dirname, 'packages/motion/src'),
       '@components': path.resolve(__dirname, 'packages/components/src'),
       '@common': path.resolve(__dirname, 'packages/common/src')
