@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@kbank/motion': path.resolve(__dirname, 'packages/motion/src'),
-      '@kbank/motion-playground': path.resolve(__dirname, 'packages/motion/playground'),
+      '@kbank/motion-playground': path.resolve(__dirname, 'packages/motion/src/playground'),
       '@motion': path.resolve(__dirname, 'packages/motion/src'),
       '@components': path.resolve(__dirname, 'packages/components/src'),
       '@common': path.resolve(__dirname, 'packages/common/src')
