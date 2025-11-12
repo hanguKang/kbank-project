@@ -129,9 +129,9 @@
 // export default App;
 
 
-import SwipeablecList from '@motion/SwipeablecList';
+import SwipeableList from '@motion/SwipeableList';
 
 function App() {
-  return <SwipeablecList />;
+  return <SwipeableList />;
 }
 export default App;

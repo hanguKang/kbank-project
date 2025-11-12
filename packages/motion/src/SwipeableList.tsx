@@ -1,46 +1,60 @@
-import React, { useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform, useDragControls } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, useMotionValue, useTransform, useDragControls, animate } from 'framer-motion';
+import type { PanInfo } from 'framer-motion';
 
 interface SwipeToDeleteListItemProps {
   id: string | number;
-  title: string;
-  singer: string;
-  musicDuration: string;
-  thumbnail?: string;
+  user: string;
+  bankName: string;
+  account: number;
+  bankIcon?: string;
   onRequestDelete: (id: string | number) => void;
 }
 
 const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({ 
   id, 
-  title, 
-  singer, 
-  musicDuration, 
-  thumbnail, 
+  user, 
+  bankName, 
+  account, 
+  bankIcon, 
   onRequestDelete 
 }) => {
   const dragX = useMotionValue(0);
   const dragControls = useDragControls();
   
   const deleteButtonWidth = 80;
-  const snapThreshold = 0.85;
+  const snapThreshold = 0.2;
 
-  // 드래그 위치에 따라 삭제 버튼 투명도 조절
-  const deleteButtonOpacity = useTransform(
-    dragX,
-    [-deleteButtonWidth * snapThreshold, 0],
-    [1, 0]
-  );
+//   const deleteButtonOpacity = useTransform(
+//     dragX,
+//     [-deleteButtonWidth * snapThreshold, 0],
+//     [1, 0]
+//   );
+
+  const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // 오른쪽으로 드래그 방지 - dragX가 0 이상이 되지 않도록
+    const currentX = dragX.get();
+    if (currentX > 0 || info.delta.x > 0) {
+      dragX.set(Math.min(0, currentX));
+    }
+  };
 
   const handleDragEnd = () => {
     const currentX = dragX.get();
     const threshold = -deleteButtonWidth * snapThreshold;
 
+    // 애니메이션 속도 조정 (duration: 초 단위, type: 애니메이션 타입)
+    const transition = { duration: 0.3,ease: 'easeOut' as const };
+
     if (currentX < threshold) {
-      dragX.set(-deleteButtonWidth);
+      //dragX.set(-deleteButtonWidth);
+      animate(dragX, -deleteButtonWidth,transition); //dragX 타겟을.. 이동
     } else {
-      dragX.set(0);
+      //dragX.set(0);
+      animate(dragX, 0,transition);
     }
   };
+
 
   const handleDeleteClick = () => {
     onRequestDelete(id);
@@ -51,15 +65,15 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
       position: 'relative', 
       overflow: 'hidden', 
       height: '80px',
-      borderBottom: '1px solid #eee'
+      borderBottom: '1px solid #eee',
+      touchAction: 'pan-y', // 모바일 프레임이 드래그할 때 움직이는 것을 막아준다. 세로 스크롤만 허용, 가로는 차단
     }}>
-      {/* 삭제 버튼 - 항상 렌더링되지만 투명도로 보이기/숨기기 */}
       <motion.button
         style={{
           position: 'absolute',
           right: 0,
           top: 0,
-          bottom: 0,
+          height: '80px',
           width: deleteButtonWidth,
           backgroundColor: '#ff4444',
           border: 'none',
@@ -67,38 +81,45 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
           fontSize: '14px',
           fontWeight: 'bold',
           zIndex: 1,
-          opacity: deleteButtonOpacity,
+          //opacity: deleteButtonOpacity,
         }}
         onClick={handleDeleteClick}
       >
         삭제
       </motion.button>
 
-      {/* 스와이프 가능한 컨테이너 */}
       <motion.div
         style={{ 
           x: dragX,
           position: 'relative',
           zIndex: 2,
-          height: '80px',
-          backgroundColor: 'white'
+          height: '80px ',
+          backgroundColor: 'white',
+          touchAction: 'none', // 브라우저 기본 터치 동작 방지
+          userSelect: 'none', // 텍스트 선택 방지
         }}
         drag="x"
         dragControls={dragControls}
         dragListener={false}
         dragConstraints={{ left: -deleteButtonWidth, right: 0 }}
+        dragElastic={0}
         dragMomentum={false}
+        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
         <div
           style={{
             padding: '16px',
-            height: '80px',
+            height: '100%',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '12px',
+            cursor: 'grab',
           }}
-          onPointerDown={(e: React.PointerEvent) => dragControls.start(e)}
+          onPointerDown={(e: React.PointerEvent) => {
+            e.preventDefault(); // 기본 동작 방지
+            dragControls.start(e);
+          }}
         >
           <div
             style={{
@@ -113,15 +134,15 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
               color: '#666'
             }}
           >
-            앨범
+            {bankIcon? bankIcon : '기본 아이콘'}
           </div>
           
           <div>
             <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-              {title}
+              {user}
             </div>
             <div style={{ fontSize: '14px', color: '#666' }}>
-              {singer} • {musicDuration}
+              {bankName} • {account}
             </div>
           </div>
         </div>
@@ -130,11 +151,19 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
   );
 };
 
+interface MusicItem {
+  id: number;
+  user: string;
+  bankName: string;
+  account: number;
+  bankIcon?: string;
+}
+
 const SwipeableList: React.FC = () => {
-  const [musicList, setMusicList] = useState([
-    { id: 1, title: 'Love Story', singer: 'Taylor Swift', musicDuration: '3:55' },
-    { id: 2, title: 'Blinding Lights', singer: 'The Weeknd', musicDuration: '3:20' },
-    { id: 3, title: 'Dynamite', singer: 'BTS', musicDuration: '3:19' },
+  const [musicList, setMusicList] = useState<MusicItem[]>([
+    { id: 1, user: '홍길동님', bankName: 'kb국민', account: 123456789 },
+    { id: 2, user: '둘리님이다', bankName: 'SC제일', account: 1234556789 },
+    { id: 3, user: '만만한철수', bankName: '하나은행', account: 123456789 },
   ]);
 
   const handleRequestDelete = (id: string | number) => {
@@ -143,12 +172,16 @@ const SwipeableList: React.FC = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>내 음악 리스트</h2>
+      <h2> 목록 삭제 리스트</h2>
       <div style={{ backgroundColor: 'white', borderRadius: '8px' }}>
-        {musicList.map((music) => (
+        {musicList.map((list) => (
           <SwipeToDeleteListItem
-            key={music.id}
-            {...music}
+            key={list.id}
+            id={list.id}
+            user={list.user}
+            bankName={list.bankName}
+            account={list.account}
+            bankIcon={list.bankIcon}
             onRequestDelete={handleRequestDelete}
           />
         ))}
