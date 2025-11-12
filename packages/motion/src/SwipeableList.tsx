@@ -20,10 +20,11 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
   onRequestDelete 
 }) => {
   const dragX = useMotionValue(0);
-  const dragControls = useDragControls();
+  //const dragControls = useDragControls(); 드래그 시작지점 제어
   
   const deleteButtonWidth = 80;
   const snapThreshold = 0.2;
+  let startX = 0;
 
 //   const deleteButtonOpacity = useTransform(
 //     dragX,
@@ -39,21 +40,37 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
     }
   };
 
+  const handleDragStart = () => {
+    startX = dragX.get(); // 드래그 시작 시점 기록
+  };
   const handleDragEnd = () => {
-    const currentX = dragX.get();
-    const threshold = -deleteButtonWidth * snapThreshold;
+    const endX = dragX.get(); // 드래그 끝 지점
+    const deltaX = endX - startX; // 방향 및 이동량 계산
+    const transition = { duration: 0.3, ease: "easeOut" as const };
+    const openThreshold = -deleteButtonWidth * snapThreshold; // 예: -20
+    const closeThreshold = -deleteButtonWidth * (1 - snapThreshold); // 예: -80
 
-    // 애니메이션 속도 조정 (duration: 초 단위, type: 애니메이션 타입)
-    const transition = { duration: 0.3,ease: 'easeOut' as const };
+    // 왼쪽으로 밀었을 때 (deltaX < 0)
+    if (deltaX < 0 && endX < openThreshold) {
+        animate(dragX, -deleteButtonWidth, transition); // 열기
+        return;
+    }
 
-    if (currentX < threshold) {
-      //dragX.set(-deleteButtonWidth);
-      animate(dragX, -deleteButtonWidth,transition); //dragX 타겟을.. 이동
+    // 오른쪽으로 밀었을 때 (deltaX > 0)
+    if (deltaX > 0 && endX > closeThreshold) {
+        animate(dragX, 0, transition); // 닫기
+        return;
+    }
+
+    // 그 외: 가장 가까운 쪽으로 스냅
+    const halfway = -deleteButtonWidth / 2;
+    if (endX < halfway) {
+        animate(dragX, -deleteButtonWidth, transition);
     } else {
-      //dragX.set(0);
-      animate(dragX, 0,transition);
+        animate(dragX, 0, transition);
     }
   };
+
 
 
   const handleDeleteClick = () => {
@@ -90,7 +107,7 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
 
       <motion.div
         style={{ 
-          x: dragX,
+          x: dragX, //useMotionValue의 값을 x축으로 값을 지정
           position: 'relative',
           zIndex: 2,
           height: '80px ',
@@ -98,13 +115,14 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
           touchAction: 'none', // 브라우저 기본 터치 동작 방지
           userSelect: 'none', // 텍스트 선택 방지
         }}
-        drag="x"
-        dragControls={dragControls}
-        dragListener={false}
+        drag="x" //드래그는 가로로만 지정
+        //dragControls={dragControls}
+        dragListener={true}
         dragConstraints={{ left: -deleteButtonWidth, right: 0 }}
         dragElastic={0}
         dragMomentum={false}
         onDrag={handleDrag}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div
@@ -116,10 +134,11 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
             gap: '12px',
             cursor: 'grab',
           }}
-          onPointerDown={(e: React.PointerEvent) => {
-            e.preventDefault(); // 기본 동작 방지
-            dragControls.start(e);
-          }}
+        
+        //   onPointerDown={(e: React.PointerEvent) => { // motion.div 쪽에서 dragListener = {false}로 지정하고 자식 요소에게 드래그 시작 지점을 지정한다. 
+        //     e.preventDefault(); // 기본 동작 방지
+        //     dragControls.start(e);
+        //   }}
         >
           <div
             style={{
