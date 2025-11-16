@@ -129,9 +129,15 @@
 // export default App;
 
 
-import SwipeableList from '@motion/SwipeableList';
+// import SwipeableList from '@motion/SwipeableList';
+
+// function App() {
+//   return <SwipeableList />;
+// }
+// export default App;
+import SearcAnimation from '@motion/SearcAnimation';
 
 function App() {
-  return <SwipeableList />;
+  return <SearcAnimation />;
 }
 export default App;
