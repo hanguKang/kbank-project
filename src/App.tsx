@@ -135,9 +135,9 @@
 //   return <SwipeableList />;
 // }
 // export default App;
-import SearcAnimation from '@motion/SearcAnimation';
+import SearchAnimation from '@motion/PullToReFresh';
 
 function App() {
-  return <SearcAnimation />;
+  return <SearchAnimation />;
 }
 export default App;
