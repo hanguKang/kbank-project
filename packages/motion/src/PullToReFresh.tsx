@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // 타입 정의
 interface CategoryItemProps {
@@ -17,30 +17,31 @@ interface ListItemProps {
 interface PullToRefreshProps {
   pullDistance: number;
   isRefreshing: boolean;
+  isHolding: boolean;
+  message: string;
+  messageColor: string;
+  showSpinner: boolean;
 }
 
-const PullToRefresh: React.FC<PullToRefreshProps> = ({ pullDistance, isRefreshing }) => {
-    const [randomMessage, setRandomMessage] = useState('');
-    const messages = [
-        '새로운 소식을 찾고 있어요 ✨',
-        '최신 정보를 가져오는 중... 🔄',
-        '잠시만 기다려주세요 ⏳',
-        '새로고침 중입니다 🌟',
-        '업데이트를 확인하고 있어요 📱',
-    ];
-  
-
-    React.useEffect(() => {
-        if (isRefreshing) {
-        const newMessage = messages[Math.floor(Math.random() * messages.length)];
-        setRandomMessage(newMessage);
-        }
-    }, [isRefreshing]);
-
+const PullToRefresh: React.FC<PullToRefreshProps> = ({ 
+  pullDistance, 
+  isRefreshing, 
+  isHolding,
+  message, 
+  messageColor,
+  showSpinner 
+}) => {
+  const BASE_HEIGHT = 60; // 기본 높이
   const threshold = 80;
-  const maxHeight = 100;
-  const height = Math.min((pullDistance / threshold) * maxHeight, maxHeight);
-  const opacity = Math.min(pullDistance / threshold, 1);
+  
+  // 드래그 중: pullDistance만큼 높이 증가
+  // 홀딩 중: BASE_HEIGHT로 고정
+  // 사라지는 중: 0으로
+  const height = isHolding 
+    ? BASE_HEIGHT 
+    : (isRefreshing ? 0 : Math.max(0, pullDistance * 0.7));
+  
+  const spinnerOpacity = Math.min(pullDistance / threshold, 1);
   const scale = Math.min(0.5 + (pullDistance / threshold) * 0.5, 1);
 
   return (
@@ -50,7 +51,6 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({ pullDistance, isRefreshin
         top: 0,
         left: 0,
         width: '100vw',
-        height: `${height}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -60,47 +60,63 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({ pullDistance, isRefreshin
         borderBottom: height > 0 ? '1px solid #e5e5e5' : 'none',
         overflow: 'hidden',
       }}
+      animate={{
+        height: `${height}px`,
+      }}
+      transition={{
+        height: { 
+          duration: isHolding ? 0.3 : (isRefreshing ? 0.3 : 0),
+          ease: 'easeOut'
+        }
+      }}
     >
       <motion.div
         style={{
-          opacity,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '8px',
         }}
       >
-        <motion.div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            border: '3px solid #007AFF',
-            borderTopColor: 'transparent',
-          }}
-          animate={{
-            rotate: isRefreshing ? 360 : pullDistance * 4,
-            scale,
-          }}
-          transition={{
-            rotate: isRefreshing 
-              ? { duration: 1, repeat: Infinity, ease: 'linear' }
-              : { duration: 0 }
-          }}
-        />
-        {isRefreshing && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+        {/* 스피너는 showSpinner가 true일 때만 표시 */}
+        {showSpinner && (
+          <motion.div
             style={{
-              fontSize: '14px',
-              color: '#666',
-              textAlign: 'center',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: `3px solid ${messageColor}`,
+              borderTopColor: 'transparent',
+              opacity: spinnerOpacity,
             }}
-          >
-            {randomMessage}
-          </motion.span>
+            animate={{
+              rotate: (isRefreshing || isHolding) ? 360 : pullDistance * 4,
+              scale: (isRefreshing || isHolding) ? 1 : scale,
+            }}
+            transition={{
+              rotate: (isRefreshing || isHolding)
+                ? { duration: 1, repeat: Infinity, ease: 'linear' }
+                : { duration: 0 }
+            }}
+          />
         )}
+        {/* 메시지 투명도 애니메이션 */}
+        <motion.span
+          animate={{ 
+            opacity: (pullDistance > 0 || isHolding) && !isRefreshing ? 1 : 0 
+          }}
+          transition={{ 
+            duration: isRefreshing ? 0.3 : 0.3,
+            ease: 'easeOut'
+          }}
+          style={{
+            fontSize: '14px',
+            color: messageColor,
+            textAlign: 'center',
+          }}
+        >
+          {message}
+        </motion.span>
       </motion.div>
     </motion.div>
   );
@@ -450,8 +466,39 @@ const SearchAnimation: React.FC = () => {
   // Pull to Refresh 상태
   const [pullDistance, setPullDistance] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isHolding, setIsHolding] = useState<boolean>(false); // 홀딩 상태
   const [touchStart, setTouchStart] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 랜덤 메시지와 색상
+  const [currentMessage, setCurrentMessage] = useState<string>('');
+  const [messageColor, setMessageColor] = useState<string>('#007AFF');
+  const [showSpinner, setShowSpinner] = useState<boolean>(false);
+  
+  // 메시지 배열
+  const messages = [
+    '새로운 소식을 찾고 있어요 ✨',
+    '최신 정보를 가져오는 중... 🔄',
+    '잠시만 기다려주세요 ⏳',
+    '새로고침 중입니다 🌟',
+    '업데이트를 확인하고 있어요 📱',
+  ];
+  
+  // 색상 배열
+  const colors = [
+    '#007AFF', // 파랑
+    '#FF3B30', // 빨강
+    '#34C759', // 초록
+    '#FF9500', // 주황
+    '#AF52DE', // 보라
+    '#FF2D55', // 분홍
+    '#5856D6', // 인디고
+    '#00C7BE', // 청록
+  ];
+  
+  // 새로고침 대기 시간 설정 (밀리초)
+  const REFRESH_HOLD_DURATION = 1500;
+  const BASE_HEIGHT = 60;
 
   const categories = ['전자제품', '의류', '가구', '도서', '스포츠', '뷰티'];
   const products = ['스마트폰', '노트북', '태블릿', '스마트워치', '이어폰'];
@@ -471,41 +518,64 @@ const SearchAnimation: React.FC = () => {
 
   // Pull to Refresh 핸들러
   const handleTouchStart = (e: React.TouchEvent) => {
+    // 애니메이션 진행 중이면 이벤트 무시
+    if (isHolding || isRefreshing) return;
+    
     if (containerRef.current && containerRef.current.scrollTop === 0 && !isSearching) {
       setTouchStart(e.touches[0].clientY);
+      // 당기기 시작할 때 랜덤 메시지와 색상 선택
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      setCurrentMessage(randomMessage);
+      setMessageColor(randomColor);
+      // '새로고침 중입니다' 메시지일 때만 스피너 표시
+      setShowSpinner(randomMessage === '새로고침 중입니다 🌟');
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStart === 0 || isRefreshing || isSearching) return;
+    // 애니메이션 진행 중이면 이벤트 무시
+    if (touchStart === 0 || isRefreshing || isSearching || isHolding) return;
     
     const currentTouch = e.touches[0].clientY;
     const distance = currentTouch - touchStart;
     
     // 스크롤이 가장 위에 있고, 당기는 방향일 때만 처리
     if (distance > 0 && containerRef.current && containerRef.current.scrollTop === 0) {
-      // 스크롤 방지
       e.preventDefault(); 
-      
-      // 최대 150까지 당길 수 있도록 설정
-      setPullDistance(Math.min(distance * 0.5, 250));
+      setPullDistance(Math.min(distance, 250));
     }
   };
 
   const handleTouchEnd = () => {
+    // 애니메이션 진행 중이면 이벤트 무시
+    if (isHolding || isRefreshing) return;
+    
     if (pullDistance > 80 && !isRefreshing) {
-      setIsRefreshing(true);
+      // 1단계: 홀딩 상태로 전환 (높이를 BASE_HEIGHT로 줄임)
+      setIsHolding(true);
+      setPullDistance(0);
       
-      // 2초 후 새로고침 완료
+      // 2단계: REFRESH_HOLD_DURATION 후 위로 사라짐
       setTimeout(() => {
-        setIsRefreshing(false);
-        setPullDistance(0);
-      }, 2000);
+        setIsRefreshing(true);
+        setIsHolding(false);
+        
+        // 3단계: 애니메이션 완료 후 상태 초기화
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 300);
+      }, REFRESH_HOLD_DURATION);
     } else {
       setPullDistance(0);
     }
     setTouchStart(0);
   };
+
+  // 컨텐츠의 top 위치 계산
+  const contentTop = isHolding 
+    ? BASE_HEIGHT 
+    : (isRefreshing ? 0 : pullDistance * 0.7);
 
   return (
     <>
@@ -530,9 +600,16 @@ const SearchAnimation: React.FC = () => {
         }
       `}} />
 
-      <PullToRefresh pullDistance={pullDistance} isRefreshing={isRefreshing} />
+      <PullToRefresh 
+        pullDistance={pullDistance} 
+        isRefreshing={isRefreshing}
+        isHolding={isHolding}
+        message={currentMessage}
+        messageColor={messageColor}
+        showSpinner={showSpinner}
+      />
 
-      <div 
+      <motion.div 
         ref={containerRef}
         style={{ 
           position: 'relative', 
@@ -540,9 +617,13 @@ const SearchAnimation: React.FC = () => {
           width: '100vw', 
           backgroundColor: 'white',
           overflowY: 'auto',
-          // 전체 컨텐츠가 밀리도록 transform 적용
-          transform: `translateY(${pullDistance}px)`,
-          transition: isRefreshing ? 'transform 0.3s ease' : 'none',
+        }}
+        animate={{
+          y: contentTop
+        }}
+        transition={{
+          duration: isHolding ? 0.3 : (isRefreshing ? 0.3 : 0),
+          ease: 'easeOut'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -598,7 +679,7 @@ const SearchAnimation: React.FC = () => {
         </div>
 
         <SearchPopup isVisible={isSearching} />
-      </div>
+      </motion.div>
     </>
   );
 };
