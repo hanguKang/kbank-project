@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // 타입 정의
@@ -533,19 +533,39 @@ const SearchAnimation: React.FC = () => {
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    // 애니메이션 진행 중이면 이벤트 무시
+  const handleTouchMove = useCallback(
+  (e: TouchEvent) => { // Native TouchEvent 타입 사용
+    // 애니메이션 진행 중이거나 검색 중이면 이벤트 무시
     if (touchStart === 0 || isRefreshing || isSearching || isHolding) return;
-    
+
     const currentTouch = e.touches[0].clientY;
     const distance = currentTouch - touchStart;
-    
-    // 스크롤이 가장 위에 있고, 당기는 방향일 때만 처리
+
     if (distance > 0 && containerRef.current && containerRef.current.scrollTop === 0) {
       e.preventDefault(); 
       setPullDistance(Math.min(distance, 250));
     }
-  };
+  },
+  [touchStart, isRefreshing, isSearching, isHolding]
+);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+  
+    // ✅ Passive 옵션을 false로 명시하여 e.preventDefault()를 허용합니다.
+    container.addEventListener(
+      'touchmove', 
+      handleTouchMove as unknown as EventListener, // as unknown as EventListener
+      { passive: false }
+    );
+  
+    // 컴포넌트가 언마운트될 때 cleanup 함수를 통해 리스너를 제거합니다.
+    return () => {
+      container.removeEventListener('touchmove', handleTouchMove as unknown as EventListener,);
+    };
+  }, [handleTouchMove]);
+
 
   const handleTouchEnd = () => {
     // 애니메이션 진행 중이면 이벤트 무시
@@ -626,7 +646,7 @@ const SearchAnimation: React.FC = () => {
           ease: 'easeOut'
         }}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
+        // onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <Header isVisible={!isSearching} />
