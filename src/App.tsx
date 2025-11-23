@@ -1,143 +1,226 @@
+import React, { useEffect, useState } from 'react';
+import { motion, useAnimation, Variants } from 'framer-motion';
+import { css } from '@emotion/react';
+import styled from '@emotion/styled';
 
 
-// import { Section} from '@components/Section';
-// import { SectionTitle } from '@components/SectionTitle';
-// import { TextButtonGroup } from '@components/TextButtonGroup';
-// import { ImageComponent } from '@common/ImageComponent';
-// import { ListComponent } from '@common/ListComponent';
-// import { ParallaxTransition } from '@motion/ParallaxTransition';
-// import { useState } from 'react';
+const ChipButton = () => {
+  return (
+    <div style={{ 
+      position: 'relative', 
+      display: 'flex', 
+      justifyContent: 'flex-end',
+      padding: '50px',
+      width: '300px',
+    }}>
+      <style>{`
+        @keyframes expandButton {
+          0% {
+            width: 24px;
+            background-color: #e0e0e0;
+          }
+          16.67% {
+            width: 220px;
+            background-color: #ffffff;
+          }
+          83.33% {
+            width: 220px;
+            background-color: #ffffff;
+          }
+          100% {
+            width: 24px;
+            background-color: #e0e0e0;
+          }
+        }
 
+        @keyframes showText {
+          0% {
+            width: 0px;
+            opacity: 0;
+          }
+          5% {
+            width: 0px;
+            opacity: 0;
+          }
+          16.67% {
+            width: 150px;
+            opacity: 1;
+          }
+          83.33% {
+            width: 150px;
+            opacity: 1;
+          }
+          88% {
+            width: 0px;
+            opacity: 0;
+          }
+          100% {
+            width: 0px;
+            opacity: 0;
+          }
+        }
 
-// function App() {
-//   const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
-//   const headerHeight = 50; 
-//   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
+        @keyframes changeTextColor {
+          0% {
+            color: #666;
+          }
+          16.67% {
+            color: #2196f3;
+          }
+          83.33% {
+            color: #2196f3;
+          }
+          100% {
+            color: #666;
+          }
+        }
 
-//   return (
-//     <div style={{ width: '100vw', margin: 0, padding: 0, minHeight: '300vh' }}>
-//       {/* 1. Fixed Header (컴포넌트 정의 없이 JSX에 직접 스타일 적용) */}
-//       <header 
-//         style={{
-//           position: 'fixed',
-//           top: 0,
-//           left: 0,
-//           right: 0,
-//           height: headerHeight,
-//           backgroundColor: '#333', 
-//           zIndex: 100,
-//           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-//         }}
-//       >
-//         <div style={{ 
-//           paddingLeft: '16px', 
-//           lineHeight: `${headerHeight}px`,
-//           fontWeight: 'bold',
-//           color: '#fff'
-//         }}>
-//           메인 헤더 | <span className={showHeaderTitle ? 'show' : ''} style={{ 
-//             transition: 'opacity 0.3s', 
-//             opacity: showHeaderTitle ? 1 : 0 
-//           }}>Section 2 Title</span>
-//         </div>
-//       </header>
+        @keyframes whiteBgSlide {
+          0% {
+            transform: translateX(-20px);
+            opacity: 0;
+          }
+          5% {
+            transform: translateX(-20px);
+            opacity: 0;
+          }
+          16.67% {
+            transform: translateX(240px);
+            opacity: 0;
+          }
+          17% {
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(-20px);
+            opacity: 0;
+          }
+        }
 
-//       {/* 💡 Header Height만큼 공간 확보 */}
-//       <div style={{ height: headerHeight }} />
+        @keyframes whiteBgFade {
+          0%, 5% {
+            opacity: 0;
+          }
+          10% {
+            opacity: 0.7;
+          }
+          15% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
 
-//       {/* 2. Parallax Transition Area */}
-//       <ParallaxTransition
-//         headerHeight={headerHeight}
-        
-//         // Section 1 Content: imgWrapper 내부의 콘텐츠
-//         section1Content={
-//           <Section 
-//             style={{ 
-//               height: '80vh', 
-//               backgroundColor: '#f9f9f9',
-//               display: 'flex',
-//               flexDirection: 'column',
-//               justifyContent: 'center',
-//               alignItems: 'center',
-//               paddingTop: '60px'
-//             }}
-//           >
-//             <SectionTitle>섹션1 - 패럴랙스 배경</SectionTitle>
-//             <ImageComponent 
-//               src={imageUrl1}
-//               alt="동화 책 이미지"
-//               width="70%"
-//               maxWidth="500px"
-//               marginBottom="16px"
-//             />
-//             <TextButtonGroup 
-//               button1Text="더 보기"
-//               button2Text="나가기"
-//             />
-//           </Section>
-//         }
+        @keyframes hideComma {
+          0% {
+            opacity: 1;
+          }
+          83.33% {
+            opacity: 1;
+          }
+          85% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
 
-//         // Section 2 Content: Relative, Sticky Title + Scrollable List
-//         section2Content={
-//           <Section 
-//             style={{ 
-//               backgroundColor: 'white',
-//               minHeight: '200vh', 
-//               padding: '0 20px 20px' 
-//             }}
-//           >
-//             {/* ⭐️ Sticky Title (컴포넌트 정의 없이 JSX에 직접 스타일 적용) */}
-//             <SectionTitle 
-//                 style={{
-//                   position: 'sticky', 
-//                   top: headerHeight,  // Header 바로 아래에 붙도록 설정
-//                   backgroundColor: 'white',
-//                   zIndex: 30, 
-//                   padding: '16px 0',
-//                   borderBottom: '1px solid #eee'
-//                 }}
-//               >
-//                 섹션2 제목 (Sticky Title)
-//             </SectionTitle>
+        .chip-button {
+          position: relative;
+          display: flex;
+          align-items: center;
+          height: 24px;
+          padding: 8px;
+          border-radius: 12px;
+          box-sizing: border-box;
+          font-size: 14px;
+          overflow: hidden;
+          color: #666;
+          border: none;
+          cursor: pointer;
+          transform-origin: 100% 50%;
+          animation: expandButton 3.5s ease-in-out forwards;
+        }
 
-//             {/* 목록 (페이지 전체 스크롤 유발) */}
-//             <ListComponent 
-//               itemCount={100}
-//               itemHeight="36px"
-//               padding="8px"
-//               style={{ padding: '20px 0' }}
-//             />
-//           </Section>
-//         }
-        
-//         // Header Title 'show' 클래스 부착 로직
-//         onScrollEnd={(isEnd) => {
-//           setShowHeaderTitle(isEnd);
-//         }}
-//       />
-//     </div>
-//   );
-// }
+        .white-bg {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 20px;
+          height: 100%;
+          background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%);
+          filter: blur(3px);
+          z-index: 1;
+          pointer-events: none;
+          animation: whiteBgSlide 3.5s ease-in-out forwards, whiteBgFade 3.5s ease-in-out forwards;
+        }
 
-//export default App;
+        .center-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background-color: #666;
+          margin: 0 2px;
+          z-index: 2;
+          position: relative;
+          flex-shrink: 0;
+        }
 
-// import ParallaxTestPage from '@motion/playground/parallax-test';
+        .base-text {
+          white-space: nowrap;
+          z-index: 2;
+          position: relative;
+          margin-left: 4px;
+          flex-shrink: 0;
+        }
 
-// function App() {
-//   return <ParallaxTestPage />;
-// }
-// export default App;
+        .comma {
+          z-index: 2;
+          position: relative;
+          flex-shrink: 0;
+          animation: hideComma 3.5s ease-in-out forwards;
+        }
 
+        .text-container {
+          display: inline-block;
+          overflow: hidden;
+          white-space: nowrap;
+          animation: showText 3.5s ease-in-out forwards;
+        }
 
-// import SwipeableList from '@motion/SwipeableList';
+        .additional-text {
+          white-space: nowrap;
+          margin-left: 12px;
+          z-index: 2;
+          position: relative;
+          animation: changeTextColor 3.5s ease-in-out forwards;
+        }
+      `}</style>
 
-// function App() {
-//   return <SwipeableList />;
-// }
-// export default App;
-import SearchAnimation from '@motion/PullToReFresh';
+      <button className="chip-button">
+        {/* 흰색 배경 효과 */}
+        <span className="white-bg"></span>
 
-function App() {
-  return <SearchAnimation />;
-}
-export default App;
+        {/* 중앙 점 */}
+        <span className="center-dot"></span>
+
+        {/* 사장님 텍스트 - 항상 보임 */}
+        <span className="base-text">사장님</span>
+
+        {/* 쉼표 */}
+        <span className="comma">,</span>
+
+        {/* 추가 텍스트 */}
+        <span className="text-container">
+          <span className="additional-text">
+            매출 파이팅 <i>아이콘</i>
+          </span>
+        </span>
+      </button>
+    </div>
+  );
+};
+
+export default ChipButton;
