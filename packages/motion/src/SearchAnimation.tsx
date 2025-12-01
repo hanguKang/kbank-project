@@ -106,8 +106,10 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   const entryWidthEase: [number, number, number, number] = [0.4, 0, 0.6, 1];
 
   const searchBoxWidthVariants = {
-    initial: { width: 'calc(100% - 0px)' },
-    animate: { width: `calc(100% - ${CANCEL_BUTTON_SPACE}px)` }
+    // initial: { width: 'calc(100% - 0px)' },
+    // animate: { width: `calc(100% - ${CANCEL_BUTTON_SPACE}px)` }
+    initial: { clipPath: 'inset(0 0 0 0 round 12px)' },
+    animate: { clipPath: `inset(0 ${CANCEL_BUTTON_SPACE}px 0 0 round 20px )` }
   };
 
   return (
@@ -117,7 +119,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
       initial="initial"
       animate={isSearching ? "animate" : "initial"}
       transition={{
-        width: {
+        clipPath: {
           type: "tween" as const,
           duration: isSearching ? 0.4 : 0,
           ease: isSearching ? entryWidthEase : [0, 0, 1, 1], // linear을 배열로 표현
@@ -188,11 +190,12 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
 // CancelButton Component
 interface CancelButtonProps {
+  isSearching: boolean;
   onClick: () => void;
   isVisible: boolean;
 }
 
-const CancelButton: React.FC<CancelButtonProps> = ({ onClick, isVisible }) => {
+const CancelButton: React.FC<CancelButtonProps> = ({ isSearching, onClick, isVisible }) => {
   const APPEARANCE_DELAY = 0.45;
 
   return (
@@ -209,11 +212,18 @@ const CancelButton: React.FC<CancelButtonProps> = ({ onClick, isVisible }) => {
         pointerEvents: isVisible ? 'auto' : 'none',
         wordBreak:'keep-all',
       }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isVisible ? 1 : 0 }}
+      initial={{ x: 0, opacity: 0 }}
+      animate={{ x: isSearching? -48 : 0, opacity: isVisible ? 1 : 0 }}
       transition={{
-        duration: isVisible ? 0.15 : 0,
-        delay: isVisible ? APPEARANCE_DELAY : 0,
+        x:{duration: isVisible ? 0.15 : 0,
+          delay: 0.35,
+          ease: [0, 0, 1, 1], // linear을 배열로 표현},
+        },
+        opacity:{
+          duration: isVisible ? 0.15 : 0,
+          delay: isVisible ? APPEARANCE_DELAY : 0,
+          ease: [0, 0, 1, 1], // linear을 배열로 표현
+        },
       }}
       onClick={onClick}
     >
@@ -343,7 +353,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isVisible }) => {
 const SearchAnimation: React.FC = () => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement | null >(null);
 
   const categories = ['전자제품', '의류', '가구', '도서', '스포츠', '뷰티'];
   const products = ['스마트폰', '노트북', '태블릿', '스마트워치', '이어폰'];
@@ -398,7 +408,7 @@ const SearchAnimation: React.FC = () => {
                 onSearchChange={setSearchValue}
                 onClear={handleClear}
               />
-              <CancelButton onClick={handleCancel} isVisible={isSearching} />
+              <CancelButton onClick={handleCancel} isSearching={isSearching} isVisible={isSearching} />
             </SearchWrapper>
           </SearchSection>
 

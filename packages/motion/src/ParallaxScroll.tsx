@@ -73,6 +73,7 @@ const Section1Wrapper: React.FC<{ children: React.ReactNode; setHeight: (height:
     if (contentRef.current) {
       const rect = contentRef.current.getBoundingClientRect();
       const height = rect.height;
+      //console.log('높이', height);
       if (height > 0 && height !== currentHeight) {
           setHeight(height);
       }
@@ -107,14 +108,14 @@ const ParallaxScroll = () => {
     const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
     const headerHeight = 50; 
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
-    const [headerWhite, setHeaderWhite] = useState(false);
+    //const [headerWhite, setHeaderWhite] = useState(false);
     const [section1ContentHeight, setSection1ContentHeight] = useState(0); 
     const section1ContentRef = useRef<HTMLDivElement>(null); 
     const { scrollY } = useScroll();
     
     // useTransform 사용
-    const transitionPoint = section1ContentHeight;
-    
+    const transitionPoint = section1ContentHeight - 70;
+    console.log('transitionPoint', transitionPoint);
     const scrollProgress = useTransform(scrollY, 
         [0, transitionPoint], 
         [0, 1]
@@ -130,8 +131,9 @@ const ParallaxScroll = () => {
 
         const unsubscribe = scrollY.on('change', (latestScrollY) => {
             const isInternal = latestScrollY >= transitionPoint;
+            console.log('스크롤Y:', latestScrollY, '이동지점:', transitionPoint, '내부영역:', isInternal);
             setShowHeaderTitle(isInternal);
-            setHeaderWhite(isInternal);
+            //setHeaderWhite(isInternal);
         });
 
         return () => unsubscribe();
@@ -214,7 +216,7 @@ const ParallaxScroll = () => {
                     left: 0,
                     right: 0,
                     height: headerHeight,
-                    backgroundColor: headerWhite ? 'white' : 'skyblue',
+                    backgroundColor: showHeaderTitle ? 'skyblue' : 'transparent',
                     transition: 'background-color 0.3s',
                     zIndex: 100,
                     boxShadow: 'none'
@@ -233,15 +235,13 @@ const ParallaxScroll = () => {
                 </div>
             </motion.header>
 
-            {/* 💡 Header Height만큼 공간 확보 */}
-            <div style={{ height: headerHeight }} />
 
             {/* 2. Parallax Transition Area */}
             <div>
                 {/* Debug UI (Optional) */}
-                <div style={{ position: 'fixed', top: 0, left: 10, zIndex: 9999, backgroundColor: 'yellow', padding: '5px', fontSize: '12px' }}>
+                {/* <div style={{ position: 'fixed', top: 0, left: 10, zIndex: 9999, backgroundColor: 'yellow', padding: '5px', fontSize: '12px' }}>
                     S1 H: {section1ContentHeight.toFixed(0)}px | Bg Y: {backgroundY.get().toFixed(1)} | Btn Y: {buttonY.get().toFixed(1)} | Opacity: {opacityBg.get().toFixed(2)} | ScrollY: {scrollY.get().toFixed(0)} | Trans: {transitionPoint.toFixed(0)} | White: {headerWhite ? 'Y' : 'N'}
-                </div>
+                </div> */}
                 
                 {/* 2-1. div.section1 역할: 높이 확보 */}
                 <Section1Wrapper 
@@ -254,7 +254,7 @@ const ParallaxScroll = () => {
                         ref={section1ContentRef} 
                         style={{
                             position: 'fixed', 
-                            top: headerHeight, 
+                            top: 0, 
                             left: 0,
                             right: 0,
                             width: '100%',

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
@@ -19,7 +20,7 @@ const ChipButton = () => {
     animateButton();
   }, [controls]);
 
-  const buttonVariants = {
+  const buttonVariantsRaw = {
     initial: {
       width: 24,
       backgroundColor: '#e0e0e0',
@@ -41,8 +42,8 @@ const ChipButton = () => {
       },
     },
   };
-
-  const textVariants = {
+  const buttonVariants = buttonVariantsRaw as Variants;
+  const textVariantsRaw = {
     initial: {
       opacity: 0,
       width: 0,
@@ -65,7 +66,9 @@ const ChipButton = () => {
     },
   };
 
-  const wtBgVariants = {
+  const textVariants = textVariantsRaw as Variants;
+
+  const wtBgVariantsRaw = {
     initial: {
       x: -10,
       opacity: 0,
@@ -84,7 +87,9 @@ const ChipButton = () => {
     },
   };
 
-  const commaVariants = {
+    const wtBgVariants = wtBgVariantsRaw as Variants;
+
+  const commaVariantsRaw = {
     initial: {
       opacity: 1,
     },
@@ -99,66 +104,30 @@ const ChipButton = () => {
     },
   };
 
+  const commaVariants = commaVariantsRaw as Variants;
+
   return (
     <Container>
       <StyledButton
         variants={buttonVariants}
         initial="initial"
         animate={controls}
-        css={css`
-          position: relative;
-          display: flex;
-          align-items: center;
-          height: 24px;
-          padding: 8px;
-          border-radius: 12px;
-          box-sizing: border-box;
-          font-size: 14px;
-          overflow: hidden;
-          background-color: #e0e0e0;
-          color: #333;
-          border: none;
-          cursor: pointer;
-          transform-origin: right center;
-        `}
+        
       >
         {/* 흰색 배경 효과 */}
         <WhiteBackground
           variants={wtBgVariants}
-          css={css`
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-              120deg,
-              transparent 10%,
-              rgba(255, 255, 255, 0.8) 50%,
-              transparent 90%
-            );
-            filter: blur(2px);
-            z-index: 1;
-          `}
+         
         />
 
         {/* 중앙 점 - 사장님의 'ㅅ' 대체 */}
         <CenterDot
-          css={css`
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background-color: #666;
-            margin: 0 2px;
-          `}
+          
         />
 
         {/* 사장님 텍스트 - 항상 보임 */}
         <TextSpan
-          css={css`
-            color: #666;
-            margin-left: 4px;
-          `}
+          
         >
           사장님
         </TextSpan>
@@ -171,10 +140,7 @@ const ChipButton = () => {
         {/* 추가 텍스트 */}
         <motion.span variants={textVariants}>
           <TextSpan
-            css={css`
-              margin-left: 12px;
-              color: #2196f3;
-            `}
+            
           >
             매출 파이팅 <i>아이콘</i>
           </TextSpan>
