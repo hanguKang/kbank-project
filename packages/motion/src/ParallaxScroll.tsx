@@ -198,7 +198,7 @@ const ParallaxScroll = () => {
                 섹션2 제목 (Sticky Title)
             </SectionTitle>
             <ListComponent 
-                itemCount={100}
+                itemCount={5}
                 itemHeight="36px"
                 padding="8px"
                 style={{ padding: '20px 0' }}
@@ -271,7 +271,8 @@ const ParallaxScroll = () => {
                     style={{
                         position: 'relative', 
                         zIndex: 20, 
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        minHeight: 'calc(100vh - 50px)', // 헤더 높이 제외
                     }}
                 >
                     {section2Content}
