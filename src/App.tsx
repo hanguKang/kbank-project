@@ -141,8 +141,13 @@
 // }
 // export default App;
 
-import SearchAnimation from "@motion/SearchAnimation";
+// import SearchAnimation from "@motion/SearchAnimation";
+// function App() {
+//   return <SearchAnimation />;
+// }
+// export default App;
+import DgitDisplayTime from "@motion/DigitDisplayTime";
 function App() {
-  return <SearchAnimation />;
+  return <DgitDisplayTime />;
 }
 export default App;
