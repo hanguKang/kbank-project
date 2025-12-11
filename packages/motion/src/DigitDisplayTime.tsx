@@ -25,7 +25,7 @@ const DgitDisplayTime: React.FC = () => {
     // 1초마다 남은 시간 업데이트
     useEffect(() => {
         const intervalId = setInterval(() => {
-            setRemainingSeconds(calculateRemainingSeconds(targetDate));
+            setRemainingSeconds(prev => calculateRemainingSeconds(targetDate));
         }, 1000);
 
         return () => clearInterval(intervalId);
@@ -51,18 +51,18 @@ const DgitDisplayTime: React.FC = () => {
     return (
         <div className="countdown-timer">
             {/* 시 (Hour) */}
-            <DigitSlot currentDigit={digits[0]} />
-            <DigitSlot currentDigit={digits[1]} />
+            <DigitSlot currentDigit={digits[0]} maxDigit={11} />
+            <DigitSlot currentDigit={digits[1]} maxDigit={1}/>
             <span className="separator">:</span>
             
             {/* 분 (Minute) */}
-            <DigitSlot currentDigit={digits[2]} />
-            <DigitSlot currentDigit={digits[3]} />
+            <DigitSlot currentDigit={digits[2]} maxDigit={5}/>
+            <DigitSlot currentDigit={digits[3]} maxDigit={9}/>
             <span className="separator">:</span>
             
             {/* 초 (Second) */}
-            <DigitSlot currentDigit={digits[4]} />
-            <DigitSlot currentDigit={digits[5]} />
+            <DigitSlot currentDigit={digits[4]} maxDigit={5}/>
+            <DigitSlot currentDigit={digits[5]} maxDigit={9}/>
         </div>
     );
 };

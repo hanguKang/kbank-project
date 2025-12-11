@@ -1,94 +1,124 @@
-// DigitSlot.tsx (수정된 버전)
-import React, { useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 
-interface DigitSlotProps {
-    currentDigit: number; // 0부터 9까지의 현재 숫자
+
+
+type DigitSlotProps = { 
+    maxDigit : number;
+    currentDigit: number; 
 }
 
-// 순환을 위한 숫자 목록: [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9] (총 11개)
-const DIGIT_SEQUENCE = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9];
 
-// CSS transition 시간 (0.4s)과 일치
-const TRANSITION_DURATION = 400; 
-const TRANSITION_RESET_DELAY = 50;
 
-const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit }) => {
-    // 1. 현재 적용할 translateY 값을 상태로 관리
-    const [translateValue, setTranslateValue] = useState('0%');
-    // 2. transition 활성화 여부를 상태로 관리
-    const [isTransitionEnabled, setIsTransitionEnabled] = useState(true); 
-    
-    // 이전 currentDigit 값을 저장하여 변화를 감지
+// 순환을 위한 숫자 목록 (9부터 0까지, 그리고 0 다음에 9를 한 번 더 추가)
+ 
+const TRANSITION_DURATION = 300; 
+const TRANSITION_RESET_DELAY = 50; 
+const DIGIT_HEIGHT = 36; // css span의 높이
+
+const calculateInitialTranslateY = (digit:number, max:number)=>{ 
+    const initialIndex = max - digit; 
+    return `${initialIndex * DIGIT_HEIGHT }`;
+}
+
+const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => { 
+    const [translateValue, setTranslateValue] = useState<string>( calculateInitialTranslateY(currentDigit, maxDigit) );
+
+    // 0에서 9로 전환될 때 transition을 일시적으로 끄기 위한 상태
+
+    const [isTransitionEnabled, setIsTransitionEnabled] = useState<boolean>(true);
+
     const prevDigitRef = useRef<number>(currentDigit);
 
-    // currentDigit이 변경될 때마다 실행
-    useEffect(() => {
-        const prevDigit = prevDigitRef.current;
-        
-        // 현재 숫자에 해당하는 sequenceIndex 계산 (9:0, 8:1, ..., 0:9)
-        let newIndex = currentDigit === 0 ? 9 : 9 - currentDigit;
-        let newTranslateY = `-${newIndex * 100}%`;
 
-        // ----------------------------------------------------
-        // A. 0 -> 9 순환 처리 로직 (가장 복잡한 부분)
-        // 이전 값이 0이었고, 현재 값이 9인 경우
-        if (prevDigit === 0 && currentDigit === 9) {
-            // 1. 0에서 맨 아래의 9로 애니메이션 (9번째 인덱스 -> 10번째 인덱스)
-            const finalNinthIndex = 10;
-            const animateToNine = `-${finalNinthIndex * 100}%`;
-            
-            // transition을 활성화하고 -1000%로 이동 (0.4s 애니메이션)
-            setIsTransitionEnabled(true); 
-            setTranslateValue(animateToNine); 
 
-            // 2. 애니메이션 완료 후 (0.4s 후) 맨 위의 9 (0%)로 순간 리셋
-            const resetTimeout = setTimeout(() => {
-                // transition을 비활성화하고 0%로 즉시 변경
-                setIsTransitionEnabled(false); 
-                setTranslateValue('0%'); 
+    // 현재 숫자의 위치를 계산합니다. (9는 0번째, 0은 9번째)
 
-                // 3. DOM 업데이트 반영 후 transition 다시 활성화
-                const reEnableTimeout = setTimeout(() => {
-                    setIsTransitionEnabled(true);
-                }, TRANSITION_RESET_DELAY); 
-                
-                return () => clearTimeout(reEnableTimeout);
-
-            }, TRANSITION_DURATION); 
-
-            prevDigitRef.current = currentDigit;
-            return () => clearTimeout(resetTimeout);
-
+    const DIGIT_SEQUENCE = useMemo(()=>{ 
+        const sequence: number[] = []; 
+        for(let i=maxDigit; i>=0; i--){ 
+            sequence.push(i); 
         } 
-        // ----------------------------------------------------
-        // B. 일반적인 9 -> 8, 1 -> 0 등 연속적인 숫자 변화
-        else {
-            // transition이 꺼져있는 상태였다면 다시 켜야 합니다.
-            if (!isTransitionEnabled) {
-                setIsTransitionEnabled(true);
-            }
-            setTranslateValue(newTranslateY);
+        sequence.push(maxDigit); 
+        return sequence; 
+    }, [maxDigit]);
+
+
+    // 만약 현재 숫자가 0이라면, 다음 숫자가 9가 될 때를 대비하여 마지막 '0' 위치를 사용합니다.
+    const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+        // 이벤트가 실제로 'transform' 속성에 대한 것이 맞는지 확인합니다.
+        if (e.propertyName !== 'transform') return; 
+
+        // 0 -> maxDigit 전환이 끝났을 때만 리셋 로직을 실행합니다.
+        // 현재 컴포넌트가 애니메이션의 끝 지점(finalNthIndex)에 있는지 확인하는 로직이 필요합니다.
+        
+        const sequenceLength = DIGIT_SEQUENCE.length;
+        const finalNthIndex = sequenceLength - 1; 
+        const finalTranslateY = `${finalNthIndex * DIGIT_HEIGHT}`;
+
+        // 현재 translateValue가 애니메이션의 마지막 위치와 일치하는지 확인합니다.
+        if (translateValue === finalTranslateY) {
+            // A. Transition 비활성화
+            setIsTransitionEnabled(false);
+            
+            // B. requestAnimationFrame을 이용해 DOM 업데이트 대기
+            requestAnimationFrame(() => {
+                // C. 위치 순간 리셋
+                setTranslateValue('0'); 
+
+                // D. 다음 프레임에 Transition 재활성화 (추가 타이머 불필요)
+                requestAnimationFrame(() => {
+                    setIsTransitionEnabled(true);
+                });
+            });
         }
+    };
+    useEffect(()=>{
+        const mountTimeout = setTimeout( ()=>{ setIsTransitionEnabled(true) }, 50);
+        const prevDigit = prevDigitRef.current; 
+        const sequenceLength = DIGIT_SEQUENCE.length; 
+        const newIndex = maxDigit - currentDigit; 
+        const newTranslateY = `${newIndex * DIGIT_HEIGHT}`;
+        if (prevDigit === 0 && currentDigit === maxDigit ){
+            // setTimeout 제거, 애니메이션 시작만 남김
+            const finalNthIndex = sequenceLength - 1;   
+            const animateToN = `${finalNthIndex * DIGIT_HEIGHT}`;   
+            setIsTransitionEnabled(true); 
+            setTranslateValue(animateToN);  
+            // 이제 리셋은 onTransitionEnd에서 처리됩니다.
+        } else { 
+            if(!isTransitionEnabled){ setIsTransitionEnabled(true);}
+            setTranslateValue(newTranslateY); 
+        }
+        prevDigitRef.current = currentDigit; 
 
-        prevDigitRef.current = currentDigit;
+        return ()=> clearTimeout(mountTimeout); 
+    }, [currentDigit, maxDigit, DIGIT_SEQUENCE, isTransitionEnabled]);
 
-    }, [currentDigit]); 
-    // 의존성 배열에서 isTransitionEnabled, setTranslateValue 등은 생략 가능 (React guarantee)
+
+
+
 
     return (
         <div className="digit-slot-container">
-            <div 
-                // isTransitionEnabled 상태를 기반으로 클래스 적용
-                className={`digit-list ${!isTransitionEnabled ? 'no-transition' : ''}`}
-                style={{ transform: `translateY(${translateValue})` }}
+            <div
+                className={`digit-list ${!isTransitionEnabled ? '' : 'transitioning' }`}
+                // ⭐️ onTransitionEnd 핸들러 추가
+                onTransitionEnd={handleTransitionEnd} 
+                style={{ 
+                    transform: `translateY( calc( -100% + ${DIGIT_HEIGHT}px + ${translateValue}px ) )` 
+                }}
             >
-                {/* 9, 8, ..., 0, 9를 나열합니다. */}
+                {/* ... (숫자 렌더링) ... */}
                 {DIGIT_SEQUENCE.map((digit, index) => (
-                    <span key={index}>{digit}</span> 
+                // 키는 인덱스로 설정
+                <span key={index}>{maxDigit - digit}</span>
+
                 ))}
             </div>
         </div>
     );
+
 };
+
 
 export default DigitSlot;

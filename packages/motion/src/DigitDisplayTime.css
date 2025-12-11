@@ -1,43 +1,58 @@
-/* DigitDisplayTime.css */
+:root {--digitHeight: 36px;}
 
 /* 전체 타이머 컨테이너 스타일 */
+
 .countdown-timer {
     display: flex;
-    font-size: 80px; /* 시계 크기 조정 */
-    font-family: monospace; /* 디지털 숫자 폰트 */
+    font-size: 21px; /* 시계 크기 조정 */
+    font-family: monospace; /* 디지털 숫자 폰트 */ 
+    gap: 4px; 
+    font-weight: 700;
+
 }
 
 /* 각 숫자 슬롯을 감싸는 컨테이너 */
 .digit-slot-container {
+    position:relative;
     /* 숫자가 이 영역 밖으로 벗어나는 것을 숨깁니다 (마스킹) */
-    overflow: hidden; 
-    height: 1em; /* 숫자 한 칸의 높이 (font-size와 동일) */
-    line-height: 1em; /* 텍스트 정렬 */
+    overflow: hidden;
+    height: var(--digitHeight); /* 숫자 한 칸의 높이 (font-size와 동일) */
+    line-height: var(--digitHeight); /* 텍스트 정렬 */
     width: 0.6em; /* 숫자의 너비 */
     position: relative;
 }
 
+
+
 /* 10개의 숫자가 수직으로 나열된 목록 */
+
 .digit-list {
     display: flex;
     flex-direction: column;
-    /* transform 값 변경 시 0.4초 동안 부드럽게 이동하도록 설정 */
-    transition: transform 0.4s ease-out; 
+    transform: translateY( calc(-100% + var(--digitHeight)) );
 }
 
+
+
 /* transition을 일시적으로 비활성화할 때 사용 */
-.digit-list.no-transition {
-    transition: none;
+.digit-list.transitioning {
+    /* transform 값 변경 시 0.3초 동안 부드럽게 이동하도록 설정 */
+    transition: transform 0.3s ease-out;
 }
+
+
 
 /* 각 숫자의 스타일 */
 .digit-list span {
-    height: 1em;
-    line-height: 1em;
+    height: var(--digitHeight);
+    line-height:var(--digitHeight);
     text-align: center;
 }
 
+
+
 /* 시간 구분자 (:) 스타일 */
+
 .separator {
     margin: 0 0.05em;
     opacity: 0.8;
