@@ -53,7 +53,7 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
         const finalNthIndex = sequenceLength - 1; 
         const finalTranslateY = `${finalNthIndex * DIGIT_HEIGHT}`;
 
-        if (translateValue === finalTranslateY) {
+        if (parseInt(translateValue) === parseInt(finalTranslateY) - 52) {
             const element = digitListRef.current;
             if (!element) return;
 
@@ -61,10 +61,10 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
             element.classList.remove('transitioning');
             
             // 2. getComputedStyle로 강제 리플로우 (offsetHeight보다 확실함)
-            window.getComputedStyle(element).transform;
-            
+            const elementTrnsformn = window.getComputedStyle(element).transform;
+            console.log(elementTransform)
             // 3. 위치 리셋
-            setTranslateValue('0');
+            setTranslateValue('-52');
             
             // 4. 다음 프레임에서 transition 재활성화
             setTimeout(() => {
@@ -73,15 +73,22 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
                     setIsTransitionEnabled(true);
                 }
             }, 50); // 10ms로 충분한 간격 확보
+        } else {
+
+            if(!isTransitionEnabled){
+                setIsTransitionEnabled(true);
+            }
+            setTranslateValue(translateValue);
         }
     };
     useEffect(()=>{
-        const mountTimeout = setTimeout( ()=>{ setIsTransitionEnabled(true) }, 50);
+        requestAnimationframe( ()=>{ setIsTransitionEnabled(true) });
         const prevDigit = prevDigitRef.current; 
         const sequenceLength = DIGIT_SEQUENCE.length; 
         const newIndex = maxDigit - currentDigit; 
         const newTranslateY = `${newIndex * DIGIT_HEIGHT}`;
-        if (prevDigit === 0 && currentDigit === maxDigit ){
+        if ( ( prevDigit === 1 && currentDigit === 0 ) || 
+             ( currentDigit === 0 && prevDigit === currentDigit) ){ //최초 시작이 0이라면 
             // setTimeout 제거, 애니메이션 시작만 남김
             const finalNthIndex = sequenceLength - 1;   
             const animateToN = `${finalNthIndex * DIGIT_HEIGHT}`;   
