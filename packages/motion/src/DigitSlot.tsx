@@ -44,32 +44,35 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
 
 
     // 만약 현재 숫자가 0이라면, 다음 숫자가 9가 될 때를 대비하여 마지막 '0' 위치를 사용합니다.
+    const digitListRef = useRef<HTMLDivElement>(null);
+
     const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
-        // 이벤트가 실제로 'transform' 속성에 대한 것이 맞는지 확인합니다.
         if (e.propertyName !== 'transform') return; 
 
-        // 0 -> maxDigit 전환이 끝났을 때만 리셋 로직을 실행합니다.
-        // 현재 컴포넌트가 애니메이션의 끝 지점(finalNthIndex)에 있는지 확인하는 로직이 필요합니다.
-        
         const sequenceLength = DIGIT_SEQUENCE.length;
         const finalNthIndex = sequenceLength - 1; 
         const finalTranslateY = `${finalNthIndex * DIGIT_HEIGHT}`;
 
-        // 현재 translateValue가 애니메이션의 마지막 위치와 일치하는지 확인합니다.
         if (translateValue === finalTranslateY) {
-            // A. Transition 비활성화
-            setIsTransitionEnabled(false);
-            
-            // B. requestAnimationFrame을 이용해 DOM 업데이트 대기
-            requestAnimationFrame(() => {
-                // C. 위치 순간 리셋
-                setTranslateValue('0'); 
+            const element = digitListRef.current;
+            if (!element) return;
 
-                // D. 다음 프레임에 Transition 재활성화 (추가 타이머 불필요)
-                requestAnimationFrame(() => {
+            // 1. 클래스 제거로 transition 비활성화
+            element.classList.remove('transitioning');
+            
+            // 2. getComputedStyle로 강제 리플로우 (offsetHeight보다 확실함)
+            window.getComputedStyle(element).transform;
+            
+            // 3. 위치 리셋
+            setTranslateValue('0');
+            
+            // 4. 다음 프레임에서 transition 재활성화
+            setTimeout(() => {
+                if (element) {
+                    element.classList.add('transitioning');
                     setIsTransitionEnabled(true);
-                });
-            });
+                }
+            }, 50); // 10ms로 충분한 간격 확보
         }
     };
     useEffect(()=>{
