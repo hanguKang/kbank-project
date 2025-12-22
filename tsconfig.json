@@ -10,6 +10,8 @@
       "@motion/*": ["./packages/motion/src/*"],
       "@components/*": ["./packages/components/src/*"],
       "@common/*": ["./packages/common/src/*"]
-    } 
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "@emotion/react"
   }
 }

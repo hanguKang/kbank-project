@@ -52,7 +52,7 @@ const SwipeToDeleteListItem: React.FC<SwipeToDeleteListItemProps> = ({
 
     // 왼쪽으로 밀었을 때 (deltaX < 0)
     if (deltaX < 0 && endX < openThreshold) {
-        animate(dragX, -deleteButtonWidth, transition); // 열기
+        animate(dragX, -deleteButtonWidth, transition); // 열기 
         return;
     }
 

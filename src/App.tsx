@@ -121,12 +121,12 @@
 
 //export default App;
 
-// import ParallaxScroll from '@motion/ParallaxScroll';
+import ParallaxScroll from '@motion/ParallaxScroll';
 
-// function App() {
-//   return <ParallaxScroll />;
-// }
-// export default App;
+function App() {
+  return <ParallaxScroll />;
+}
+export default App;
 
 
 // import SwipeableList from '@motion/SwipeableList';
@@ -146,8 +146,8 @@
 //   return <SearchAnimation />;
 // }
 // export default App;
-import DgitDisplayTime from "@motion/DigitDisplayTime";
-function App() {
-  return <DgitDisplayTime />;
-}
-export default App;
+// import DgitDisplayTime from "@motion/DigitDisplayTime";
+// function App() {
+//   return <DgitDisplayTime />;
+// }
+// export default App;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { css } from '@emotion/react';
 
 // -------------------------------------------------------------------------
 // 💡 App.tsx에서 사용되던 컴포넌트 목업 및 실제 정의
@@ -113,8 +114,9 @@ const ParallaxScroll = () => {
     const section1ContentRef = useRef<HTMLDivElement>(null); 
     const { scrollY } = useScroll();
     
+    const headerRef = useRef<HTMLDivElement | null>(null);
     // useTransform 사용
-    const transitionPoint = section1ContentHeight - 70;
+    const transitionPoint = section1ContentHeight - 20;
     console.log('transitionPoint', transitionPoint);
     const scrollProgress = useTransform(scrollY, 
         [0, transitionPoint], 
@@ -124,6 +126,41 @@ const ParallaxScroll = () => {
     const opacityBg = useTransform(scrollProgress, [0, 1], [1, 0]);
     const backgroundY = useTransform(scrollProgress, [0, 1], [0, -45]);
     const buttonY = useTransform(scrollProgress, [0, 1], [0, -75]);
+
+    const HeaderStyle = css`
+        &::after { 
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background-color: red;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+        &.is-scrolled::after{
+            opacity: 1;
+        }
+    `;
+
+    useEffect(() => {
+    const handleScroll = () => {
+        if(!headerRef.current) return;
+        headerRef.current?.classList.toggle(
+        'is-scrolled', 
+        window.pageYOffset > transitionPoint
+        );
+    };
+    
+    window.addEventListener('scroll', handleScroll, { 
+        passive: true, 
+        capture: true 
+    });
+    
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+    }, []);
 
     // --- 애니메이션 로직 통합 ---
     useEffect(() => {
@@ -207,20 +244,22 @@ const ParallaxScroll = () => {
     );
 
     return (
-        <div style={{ width: '100vw', margin: 0, padding: 0, minHeight: '300vh' }}>
+        <div style={{ width: '100vw', margin: 0, padding: 0, minHeight: 'calc(100vh - 50px)' }}>
             {/* 1. Fixed Header */}
-            <motion.header 
+            <div
                 style={{
                     position: 'fixed',
                     top: 0,
                     left: 0,
                     right: 0,
                     height: headerHeight,
-                    backgroundColor: showHeaderTitle ? 'skyblue' : 'transparent',
-                    transition: 'background-color 0.3s',
                     zIndex: 100,
-                    boxShadow: 'none'
+                    boxShadow: 'none',
+                    transform: 'translateZ(0)', // GPU 가속
                 }}
+                css={HeaderStyle}
+
+                ref={headerRef}
             >
                 <div style={{ 
                     paddingLeft: '16px', 
@@ -233,8 +272,7 @@ const ParallaxScroll = () => {
                         opacity: showHeaderTitle ? 1 : 0
                     }}>Section 2 Title</span>
                 </div>
-            </motion.header>
-
+            </div>
 
             {/* 2. Parallax Transition Area */}
             <div>

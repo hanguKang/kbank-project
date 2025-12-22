@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "jsxImportSource": "@emotion/react",
     "baseUrl": ".",
     "paths": {
       "@motion/*": ["./packages/motion/src/*"],
