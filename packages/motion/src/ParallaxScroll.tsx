@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { css } from '@emotion/react';
 
@@ -12,26 +12,21 @@ const SectionTitle: React.FC<React.PropsWithChildren<{ style?: React.CSSProperti
     <h2 style={{ fontSize: '24px', margin: '0 0 16px', textAlign: 'center', ...style }}>{children}</h2>
 );
 // TextButtonGroup: motion.div로 감싸서 별도의 Y 변환을 적용할 수 있도록 수정
-const TextButtonGroup: React.FC<{ button1Text: string; button2Text: string; y: any; zIndex: number }> = ({ button1Text, button2Text, y, zIndex }) => (
-    <motion.div 
+const TextButtonGroup: React.FC<{ button1Text: string; button2Text: string; zIndex: number }> = ({ button1Text, button2Text,  zIndex }) => (
+    <div 
         style={{ 
             display: 'flex', 
             gap: '8px', 
-            position: 'absolute',
-            bottom: '40px',
-            left: '50%',
-            x: '-50%',
-            y: y,
             zIndex: zIndex
         }}
     >
         <button style={{ padding: '8px 16px' }}>{button1Text}</button>
         <button style={{ padding: '8px 16px' }}>{button2Text}</button>
-    </motion.div>
+    </div>
 );
 
 // ImageComponent: 배경색상(파란색)이 덮도록 수정. opacity 적용을 위해 motion.img 대신 일반 img 사용 후, 래퍼에 opacity 적용
-const ImageComponent: React.FC<{ src: string; alt: string; opacity: any }> = ({ src, alt, opacity }) => (
+const ImageComponent: React.FC<{ contentRef: React.RefObject<HTMLImageElement | null>; src: string; alt: string; opacity: any, onload:()=>void }> = ({ contentRef, src, alt, opacity, onload }) => (
     <div 
         style={{ 
             position: 'absolute', 
@@ -45,15 +40,21 @@ const ImageComponent: React.FC<{ src: string; alt: string; opacity: any }> = ({ 
         }}
     >
         <motion.img 
+            ref={contentRef}
             src={src} 
             alt={alt} 
             style={{ 
-                width: '100%', 
-                height: '100%', 
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 'auto', 
+                height: '448px', 
                 objectFit: 'cover',
                 display: 'block',
-                opacity: opacity
+                opacity: opacity,
             }}
+            
+            onLoad={onload}
         />
     </div>
 );
@@ -76,7 +77,8 @@ const Section1Wrapper: React.FC<{ children: React.ReactNode; setHeight: (height:
       const height = rect.height;
       //console.log('높이', height);
       if (height > 0 && height !== currentHeight) {
-          setHeight(height);
+          //setHeight(height);
+          setHeight(484);
       }
     }
   }, [setHeight, currentHeight, contentRef]);
@@ -111,12 +113,15 @@ const ParallaxScroll = () => {
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     //const [headerWhite, setHeaderWhite] = useState(false);
     const [section1ContentHeight, setSection1ContentHeight] = useState(0); 
+    const [imgLoaded, setImgLoaded] = useState(false);
+    const [imgHeight, setImgHeight] = useState(0);  
     const section1ContentRef = useRef<HTMLDivElement>(null); 
     const { scrollY } = useScroll();
     
     const headerRef = useRef<HTMLDivElement | null>(null);
-    // useTransform 사용
-    const transitionPoint = section1ContentHeight - 20;
+    const imgRef = useRef<HTMLImageElement | null>(null);
+    const transitionPoint = imgHeight - 50;
+    
     console.log('transitionPoint', transitionPoint);
     const scrollProgress = useTransform(scrollY, 
         [0, transitionPoint], 
@@ -128,6 +133,7 @@ const ParallaxScroll = () => {
     const buttonY = useTransform(scrollProgress, [0, 1], [0, -75]);
 
     const HeaderStyle = css`
+        --header-opacity:0;
         &::after { 
             content: '';
             position: absolute;
@@ -136,31 +142,27 @@ const ParallaxScroll = () => {
             right: 0;
             height: 100%;
             background-color: red;
-            opacity: 0;
-            transition: opacity 0.3s;
+            opacity: var(--header-opacity);
             z-index: -1;
         }
-        &.is-scrolled::after{
-            opacity: 1;
-        }
+        
     `;
 
+
+
     useEffect(() => {
-    const handleScroll = () => {
-        if(!headerRef.current) return;
-        headerRef.current?.classList.toggle(
-        'is-scrolled', 
-        window.pageYOffset > transitionPoint
-        );
-    };
-    
-    window.addEventListener('scroll', handleScroll, { 
-        passive: true, 
-        capture: true 
-    });
-    
-    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
-    }, []);
+        const handleScroll = () => {
+            if(!headerRef.current) return;
+            headerRef.current?.style.setProperty('--header-opacity', window.pageYOffset > transitionPoint ? '1' : '0');
+        };
+        
+        window.addEventListener('scroll', handleScroll, { 
+            passive: true, 
+            capture: true 
+        });
+        
+        return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+    }, [transitionPoint]);
 
     // --- 애니메이션 로직 통합 ---
     useEffect(() => {
@@ -176,7 +178,18 @@ const ParallaxScroll = () => {
         return () => unsubscribe();
     }, [scrollY, transitionPoint]);
 
-
+    useLayoutEffect(() => {
+        // 초기 상태 설정
+        
+        if(!imgRef.current) return;
+        if(imgRef.current.complete) {
+            console.log('이미지 로드 완료:', imgRef.current.naturalWidth, 'x', imgRef.current.naturalHeight);
+        }
+        setImgHeight(imgRef.current.getBoundingClientRect().height);
+        
+        
+    }, [imgLoaded]);
+    
     // -------------------------------------------------------------------------
     // 3. Render
     // -------------------------------------------------------------------------
@@ -184,7 +197,7 @@ const ParallaxScroll = () => {
     const section1Content = (
         <Section 
             style={{ 
-                height: '80vh', 
+                height: imgHeight > 0 ? imgHeight : '448px', 
                 position: 'relative',
                 backgroundColor: 'transparent',
                 display: 'flex',
@@ -196,21 +209,24 @@ const ParallaxScroll = () => {
         >
             {/* ⭐️ 1. 배경 이미지 (Opacity 1 -> 0) */}
             <ImageComponent 
+                contentRef={imgRef}
                 src={imageUrl1}
                 alt="동화 책 이미지"
                 opacity={opacityBg}
+                onload={()=> { setImgLoaded(true);}}
             />
 
             {/* ⭐️ 2. 섹션 타이틀 (ImageComponent 위에 보이도록 z-index 2) */}
-            <SectionTitle style={{ zIndex: 2, color: 'white' }}>섹션1 - 패럴랙스 배경</SectionTitle>
+            <motion.div style={{ position:'absolute', bottom:'40px', left:'50%', x:'-50%', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', y:buttonY,zIndex:2 }}>
+                <SectionTitle style={{ zIndex: 2, color: 'white' }}>섹션1 - 패럴랙스 배경</SectionTitle>
 
-            {/* ⭐️ 3. 버튼 그룹 (배경보다 빠르게 Y 이동) */}
-            <TextButtonGroup 
-                button1Text="더 보기"
-                button2Text="나가기"
-                y={buttonY}
-                zIndex={2}
-            />
+                {/* ⭐️ 3. 버튼 그룹 (배경보다 빠르게 Y 이동) */}
+                <TextButtonGroup 
+                    button1Text="더 보기"
+                    button2Text="나가기"
+                    zIndex={2}
+                />
+            </motion.div>
         </Section>
     );
 
