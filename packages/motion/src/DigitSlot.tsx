@@ -54,6 +54,7 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
         const finalTranslateY = `${finalNthIndex * DIGIT_HEIGHT}`;
 
         if (parseInt(translateValue) === parseInt(finalTranslateY) - 52) {
+        if (parseInt(translateValue) === parseInt(finalTranslateY) - 52) {
             const element = digitListRef.current;
             if (!element) return;
 
@@ -63,7 +64,10 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
             // 2. getComputedStyle로 강제 리플로우 (offsetHeight보다 확실함)
             const elementTrnsformn = window.getComputedStyle(element).transform;
             console.log(elementTransform)
+            const elementTrnsformn = window.getComputedStyle(element).transform;
+            console.log(elementTransform)
             // 3. 위치 리셋
+            setTranslateValue('-52');
             setTranslateValue('-52');
             
             // 4. 다음 프레임에서 transition 재활성화
@@ -74,6 +78,11 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
                 }
             }, 50); // 10ms로 충분한 간격 확보
         } else {
+            if(!isTransitionEnabled){
+                setIsTransitionEnabled(true);
+            }
+            setTranslateValue(translateValue);
+        } else {
 
             if(!isTransitionEnabled){
                 setIsTransitionEnabled(true);
@@ -83,10 +92,13 @@ const DigitSlot: React.FC<DigitSlotProps> = ({ currentDigit, maxDigit }) => {
     };
     useEffect(()=>{
         requestAnimationframe( ()=>{ setIsTransitionEnabled(true) });
+        requestAnimationframe( ()=>{ setIsTransitionEnabled(true) });
         const prevDigit = prevDigitRef.current; 
         const sequenceLength = DIGIT_SEQUENCE.length; 
         const newIndex = maxDigit - currentDigit; 
         const newTranslateY = `${newIndex * DIGIT_HEIGHT}`;
+        if ( ( prevDigit === 1 && currentDigit === 0 ) || 
+             ( currentDigit === 0 && prevDigit === currentDigit) ){ //최초 시작이 0이라면 
         if ( ( prevDigit === 1 && currentDigit === 0 ) || 
              ( currentDigit === 0 && prevDigit === currentDigit) ){ //최초 시작이 0이라면 
             // setTimeout 제거, 애니메이션 시작만 남김
