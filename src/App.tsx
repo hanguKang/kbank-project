@@ -7,7 +7,7 @@
 // import { ListComponent } from '@common/ListComponent';
 // import { ParallaxTransition } from '@motion/ParallaxTransition';
 // import { useState } from 'react';
-import { ParallaxScrollDemo } from "@motion/index";
+import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
 
 // function App() {
 //   const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
