@@ -30,7 +30,7 @@ const SECTION_TITLES = [
       </div>
     </div>
   </HeroContainer>,
-  null,
+  <React.Fragment key="t1" />,
   <HeroContainer key="t2">
     <div className={'hero-title'}>재미있는</div>
     <div className={'hero-title-wrapper'}>
@@ -101,10 +101,12 @@ const Header = ({ isShow }: { isShow: boolean }) => {
   );
 };
 
-const Section4 = ({ step, xProgress, color }: {
+const Section6 = ({ isAnimationRef, step, xProgress, color, setIsAnimate }: {
+  isAnimationRef: React.RefObject<boolean>;
   step: number;
   xProgress: MotionValue<number>;
   color: string;
+  setIsAnimate: (arg: boolean) => void;
 }) => {
   const translateX = useTransform(xProgress, [0, 1], ['5%', '-5%']);
   return (
@@ -112,8 +114,9 @@ const Section4 = ({ step, xProgress, color }: {
       <motion.div style={{ x: translateX, perspective: 1000 }}>
         <motion.div
           animate={{ z: step * 200 }}
-          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           style={{ padding: '2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '1rem' }}
+          onAnimationStart={() => { isAnimationRef.current = true; setIsAnimate(true); }}
+          onAnimationComplete={() => { isAnimationRef.current = false; setIsAnimate(false); }}
         >
           <h2 style={{ fontWeight: 'bold', color: '#fff' }}>제목</h2>
         </motion.div>
@@ -152,28 +155,18 @@ const PrallaxScrollDemo = () => {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [showHeaderBox, setShowHeaderBox] = useState<boolean>(false);
   const [direction, setDirection] = useState(0);
-
+  
   const xProgress = useMotionValue<number>(0.5);
   const MAX_S1_STEP = 1;
-  const MAX_S4_STEP = 2;
-
+  const MAX_S5_STEP = 2;
+  
   const isAnimatingRef = useRef(false);
   const directionRef = useRef(0);
   const indexRef = useRef(0);
   const stepRef = useRef(0);
+  const nextIndexRef = useRef<number | null>(null);
+  const pendingIndexRef = useRef<number | null>(null);
 
-  // 잔여 휠 이벤트(관성 스크롤) 무시를 위한 cooldown
-  const lastWheelTimeRef = useRef(0);
-  const WHEEL_COOLDOWN = 800; // ms — 마지막 처리 후 이 시간 안의 이벤트는 무시
-
-  // ✅ 핵심 수정: showHeaderBox를 ref로도 관리하여 handleWheel 클로저의 stale 문제 해결
-  const showHeaderBoxRef = useRef(false);
-
-  // ref와 state를 동시에 업데이트하는 헬퍼
-  const setHeader = useCallback((val: boolean) => {
-    showHeaderBoxRef.current = val;
-    setShowHeaderBox(val);
-  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => xProgress.set(e.clientX / window.innerWidth);
@@ -181,105 +174,118 @@ const PrallaxScrollDemo = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [xProgress]);
 
-  const lock = useCallback((ms: number) => {
+  const lock = (ms: number) => {
     isAnimatingRef.current = true;
     setIsAnimating(true);
+    
     setTimeout(() => {
       isAnimatingRef.current = false;
       setIsAnimating(false);
     }, ms);
-  }, []);
+  };
 
   const updateIndex = useCallback((newIdx: number, dir: number) => {
-    // ✅ 헤더 제어: dir과 newIdx 기준으로 명확하게 분리
-    if (dir === -1) {
-      // 역순(위로): index 1, 2 진입 시 헤더 유지, 그 외(3 등)는 헤더 끔
-      if (newIdx === 2 || newIdx === 1) {
-        setHeader(true);
-      } else {
-        setHeader(false);
-      }
-    } else {
-      // 정순(아래로): index 1 진입 시에만 헤더, 나머지는 끔
-      newIdx === 1 ? setHeader(true) : setHeader(false);
-    }
-
+    // 내부 애니메이션이 필요한 섹션(1, 5)으로 진입할 때의 초기화
     if (newIdx === 1) {
-      stepRef.current = dir === -1 ? 0 : MAX_S1_STEP;
-      lock(2000);
+      stepRef.current = dir === 1 ? 0 : MAX_S1_STEP;
     } else if (newIdx === 5) {
-      stepRef.current = dir === -1 ? 0 : MAX_S4_STEP;
-      lock(2000);
+      stepRef.current = dir === 1 ? 0 : MAX_S5_STEP;
     } else {
       stepRef.current = 0;
-      // mode='wait': exit 0.6s + enter 0.6s = 1200ms
-      lock(1200);
     }
 
     setInternalStep(stepRef.current);
     indexRef.current = newIdx;
     setIndex(newIdx);
-  }, [lock, setHeader]);
+    lock(800); 
+  }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    if (Math.abs(e.deltaY) < 30 || isAnimatingRef.current) return;
+    console.log('isAnimating:', isAnimatingRef.current);
+  if (Math.abs(e.deltaY) < 30 || isAnimatingRef.current) return;
 
-    const now = Date.now();
-    if (now - lastWheelTimeRef.current < WHEEL_COOLDOWN) return;
-    lastWheelTimeRef.current = now;
+  const isNext = e.deltaY > 0;
+  const prevDirection = directionRef.current;
+  directionRef.current = isNext ? 1 : -1;
+  setDirection(directionRef.current);
 
-    const isNext = e.deltaY > 0;
-    directionRef.current = isNext ? 1 : -1;
-    setDirection(directionRef.current);
+  const currIdx = indexRef.current;
 
-    const currIdx = indexRef.current;
+  // 1. 아래로 스크롤 (Next)
+  if (isNext) {
+    setShowHeaderBox(false);
+    if (currIdx === 8) return; // 마지막 섹션이면 종료
 
-    if (isNext) {
-      // 정순(아래로)
-      setHeader(false);
-
-      if (currIdx === 8) return;
-
-      if (currIdx === 1 || currIdx === 3) {
-        const maxStep = currIdx === 1 ? MAX_S1_STEP : MAX_S4_STEP;
+    // [수정 포인트] index 1 혹은 5일 때만 내부 Step 진행
+    // index 1 혹은 5에서 내부 스텝 진행
+      if (currIdx === 1 || currIdx === 5) {
+        const maxStep = currIdx === 1 ? MAX_S1_STEP : MAX_S5_STEP;
+        
         if (stepRef.current < maxStep) {
           stepRef.current += 1;
           setInternalStep(stepRef.current);
-          lock(700); // z 애니메이션 0.6s + 여유 100ms
+          lock(1800);
+          return;
+        } else {
+          // 마지막 스텝 도달 후 스크롤 시: 내부 'exit' 애니메이션 트리거를 위해 step 증가
+          pendingIndexRef.current = currIdx + 1;
+          setInternalStep(stepRef.current + 1); // 이 변경이 내부 motion.div의 exit을 유도함
+          lock(2000); 
           return;
         }
       }
 
-      updateIndex(currIdx + 1, 1);
+    // 내부 Step이 끝났거나 일반 섹션인 경우 다음 인덱스로
+    updateIndex(currIdx + 1, 1);
 
-    } else {
-      // 역순(위로)
-      if (currIdx === 0) return;
 
-      // ✅ 수정: showHeaderBox 대신 showHeaderBoxRef.current 사용 → stale 클로저 문제 없음
-      if (!showHeaderBoxRef.current && currIdx !== 1) {
-        setHeader(true);
-        lock(600);
-        return;
-      }
+  // 2. 위로 스크롤 (Prev)
+  } else {
+    if (currIdx === 0) return;
 
-      if ((currIdx === 1 || currIdx === 3) && stepRef.current > 0) {
-        stepRef.current -= 1;
-        setInternalStep(stepRef.current);
-        lock(700);
-        return;
-      }
-
-      const nextIdx = currIdx - 1;
-
-      // ✅ index 4→3 진입 시: nextIdx===3이면 헤더 끔 (updateIndex 내부에서 처리되므로 여기선 불필요)
-      // updateIndex(nextIdx, -1) 내부에서 올바르게 setHeader(false) 호출됨
-      updateIndex(nextIdx, -1);
+    if (prevDirection === 1 || !showHeaderBox) {
+      setShowHeaderBox(true);
+      lock(600);
+      return; // 여기서 1회 소모
     }
-    // ✅ 의존성에서 showHeaderBox(state) 제거 → ref로 읽으므로 불필요
-  }, [lock, updateIndex, setHeader]);
 
-  const isHeaderShow = showHeaderBox || index === 1;
+    // 헤더가 없는 상태에서 위로 올리면 헤더부터 보여줌 (기획 의도에 따라 선택)
+    if (!showHeaderBox) {
+      setShowHeaderBox(true);
+      lock(600);
+      return;
+    }
+
+    // [수정 포인트] index 1 혹은 5일 때만 내부 Step 역순 진행
+    if ((currIdx === 1 || currIdx === 5) && stepRef.current > 0) {
+      stepRef.current -= 1;
+      setInternalStep(stepRef.current);
+      lock(1800);
+      return;
+    } else if (currIdx === 1 || currIdx === 5) {
+      // 0번 섹션으로 나가기 위한 '역방향 exit' 트리거
+      pendingIndexRef.current = currIdx - 1;
+      setInternalStep(-1); // 0보다 작은 값으로 exit 유도
+      lock(2000);
+      return;
+    }
+    
+
+    const nextIdx = currIdx - 1;
+
+    // [핵심] 다음 목적지가 index 1이면 헤더 유지, 그 외(특히 0)는 제거
+    if (nextIdx === 1) {
+      setShowHeaderBox(true); // 유지
+    } else {
+      setShowHeaderBox(false); // 1 -> 0으로 갈 때 등
+    }
+
+    updateIndex(nextIdx, -1);
+
+  }
+}, [showHeaderBox, lock, updateIndex]); // 의존성 배열에 필요한 함수 추가
+
+  const isHeaderShow = showHeaderBox || (directionRef.current === 1 && index === 1);
 
   const innerVariants = {
     initial: (dir: number) => ({ y: dir > 0 ? '80px' : '-80px', opacity: 0 }),
@@ -299,10 +305,11 @@ const PrallaxScrollDemo = () => {
       onWheel={handleWheel}
     >
       <Header isShow={isHeaderShow} />
-      <AnimatePresence custom={direction} mode='wait'>
+      <AnimatePresence custom={direction} mode ='wait'>
         <motion.div
           key={index}
           animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           style={{
             left: 0,
@@ -311,16 +318,13 @@ const PrallaxScrollDemo = () => {
             position: 'absolute',
             top: 0,
           }}
-          transition={{ duration: index === 1 ? 1.8 : 0.6, ease: [0.4, 0, 0.2, 1] }}
-          onAnimationComplete={() => {
-            // enter 애니메이션 완료 시점에 lock 해제 (setTimeout보다 정확)
-            isAnimatingRef.current = false;
-            setIsAnimating(false);
-          }}
+          transition={{ duration: index === 1 ? 1.8 : 0.6, ease: [0.4, 0, 0.2, 1], }}
         >
-          {index === 3 ? (
-            <Section4
+          {index === 5 ? (
+            <Section6
               color={SECTION_COLORS[index]}
+              isAnimationRef={isAnimatingRef}
+              setIsAnimate={setIsAnimating}
               step={internalStep}
               xProgress={xProgress}
             />
@@ -346,9 +350,11 @@ const PrallaxScrollDemo = () => {
                   variants={innerVariants}
                   style={{ flex: '1 1 auto', height: 'calc(100dvh - 80px)', backgroundColor: 'olive' }}
                   transition={{ duration: 1.6 }}
-                  onAnimationComplete={(definition: string) => {
-                    if (definition === 'exit') {
-                      // nextIndexRef 필요 시 여기서 처리
+                  onAnimationComplete={() => {
+                    if (pendingIndexRef.current !== null && (internalStep > MAX_S1_STEP || internalStep < 0)) {
+                      const next = pendingIndexRef.current;
+                      pendingIndexRef.current = null;
+                      updateIndex(next, directionRef.current);
                     }
                   }}
                 >
@@ -364,3 +370,7 @@ const PrallaxScrollDemo = () => {
 };
 
 export default PrallaxScrollDemo;
+
+//현재 이 상태에서 위코드에서 휠 이벤트시 index 0 또는 2 섹션에서 --->1로 들어와서 다시 index 0이나 2로 갈 때, 화면 전환 애니메이션이 innerVariants의 2번째 애니메이션 끝나고 작동됐으면 좋겠는데, 내부의 2번째 애니메이션이 종료될때까지 기다리지 않고 section이 변경되는 애니메이션이 작동한다.  이유는 <AnimatePresenece가 <motion.div key={index}에만 반응하기 때문이다. 그렇기 때문에 index 1, 5일 때는 updateIndex를  innerVariants를 사용하고 있는 <motion.div에 onAnimationComplete에 맡겨서 애니메이션이 끝난 다음에 index state가 변경되도록 하고 싶은데, onAnimationComplete의 definition 인자로 "exit"이 들어오는 공식 API는 아직 없지? 그럼 어떻게 해결해야 할까? 나머지는 wheel에서 updateIndex를 구동하고. 그렇게 전체 코드를 변경할 수 있을까?
+
+//현재 이 상태에서 위코드에서 휠 이벤트시 index 0 또는 2 섹션에서 --->1로 들어와서 다시 index 0이나 2로 갈 때, 화면 전환 애니메이션이 innerVariants의 2번째 애니메이션 끝나고 작동되게 작성하고 싶었지만, 잘 안된다. 보시다시피 진입이후 진입때 했던 initial-> animate 애니메이션을 재 실행하고, 다시 휠을 하면, 진입때 했던 initial-> animate 애니메이션을 또 재 실행하고 바로 exit할 때 애니메이션을 한다.
