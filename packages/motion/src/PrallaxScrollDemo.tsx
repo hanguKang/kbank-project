@@ -19,62 +19,6 @@ const HeroContainer = styled.div`
   white-space: nowrap;
 `;
 
-const SECTION_TITLES = [
-  <HeroContainer key="t0">
-    <div className={'hero-title text-part1'}>나의 금융생활이</div>
-    <div className={'hero-title text-part2'}>즐거움으로</div>
-    <div className={'hero-title hero-title-wrapper'} style={{ position: 'relative', padding: '0 20px' }}>
-      <div className={'white-box'} />
-      <div className={'hero-title text-part3'} style={{ position: 'relative', color: '#0114a7', zIndex: 1 }}>
-        가득해지도록.
-      </div>
-    </div>
-  </HeroContainer>,
-  null,
-  <HeroContainer key="t2">
-    <div className={'hero-title'}>재미있는</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>돈 모으기</div>
-    </div>
-  </HeroContainer>,
-  <HeroContainer key="t3">
-    <div className={'hero-title'}>카드 한 장으로 골라쓰는</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>혜택</div>
-    </div>
-  </HeroContainer>,
-  <HeroContainer key="t4">
-    <div className={'hero-title'}>비교할 수록 가벼운</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>이자 생활</div>
-    </div>
-  </HeroContainer>,
-  <HeroContainer key="t5">
-    <div className={'hero-title'}>즐거움으로</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>가득해지기를</div>
-    </div>
-  </HeroContainer>,
-  <HeroContainer key="t6">
-    <div className={'hero-title'}>일상이 돈이 되는</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>마법</div>
-    </div>
-  </HeroContainer>,
-  <HeroContainer key="t7">
-    <div className={'hero-title'}>내 미래를 위한</div>
-    <div className={'hero-title-wrapper'}>
-      <div className={'hero-white-box'} />
-      <div className={'hero-title'}>자산관리도</div>
-    </div>
-  </HeroContainer>,
-  <React.Fragment key="t8" />,
-];
 
 const footerHeight = '300px';
 
