@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion';
 import type { MotionValue } from 'framer-motion';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback,useMemo } from 'react';
 import './mainTest.css';
 
 const SECTION_COLORS = [
@@ -81,8 +81,8 @@ const footerHeight = '300px';
 const Header = ({ isShow }: { isShow: boolean }) => {
   return (
     <motion.header
-      animate={{ y: isShow ? 0 : -100, opacity: isShow ? 1 : 0 }}
-      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: isShow ? 0 : -80 }}
+      initial={{ y: -80 }}
       style={{
         position: 'fixed',
         top: 0,
@@ -101,7 +101,12 @@ const Header = ({ isShow }: { isShow: boolean }) => {
   );
 };
 
-const Section4 = ({ step, xProgress, color }: {
+const Section4 = ({ 
+  children, 
+  step, 
+  xProgress, 
+  color }: {
+  children: React.ReactNode;
   step: number;
   xProgress: MotionValue<number>;
   color: string;
@@ -109,6 +114,7 @@ const Section4 = ({ step, xProgress, color }: {
   const translateX = useTransform(xProgress, [0, 1], ['5%', '-5%']);
   return (
     <div style={{ backgroundColor: color, width: '100%', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {children}
       <motion.div style={{ x: translateX, perspective: 1000 }}>
         <motion.div
           animate={{ z: step * 200 }}
@@ -122,7 +128,14 @@ const Section4 = ({ step, xProgress, color }: {
   );
 };
 
-const GeneralSection = ({ children, idx, color }: { children?: React.ReactNode; idx: number; color: string; }) => {
+const GeneralSection = ({ 
+	children, 
+	idx, 
+	color 
+	}: { 
+	children?: React.ReactNode; 
+	idx: number; 
+	color: string; }) => {
   return (
     <div style={{
       backgroundColor: color,
@@ -152,9 +165,11 @@ const PrallaxScrollDemo = () => {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [showHeaderBox, setShowHeaderBox] = useState<boolean>(false);
   const [direction, setDirection] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [exitingIdx, setExitingIdx] = useState(0);
 
   const xProgress = useMotionValue<number>(0.5);
-  const MAX_S1_STEP = 1;
+  const MAX_S2_STEP = 1;
   const MAX_S4_STEP = 2;
 
   const isAnimatingRef = useRef(false);
@@ -175,6 +190,64 @@ const PrallaxScrollDemo = () => {
     setShowHeaderBox(val);
   }, []);
 
+const SECTION_TITLES = useMemo(()=>[
+  <HeroContainer key="t0">
+    <div className={`hero-title text-part1 ${isLoaded? 'visited' : ''}`}>나의 금융생활이</div>
+    <div className={`hero-title text-part2 ${isLoaded? 'visited' : ''}`}>즐거움으로</div>
+    <div className={`hero-title hero-title-wrapper ${isLoaded? 'visited' : ''}`} style={{ position: 'relative', padding: '0 20px' }}>
+      <div className={`white-box ${isLoaded? 'visited' : ''}`} />
+      <div className={`hero-title text-part3 ${isLoaded? 'visited' : ''}`} style={{ position: 'relative', color: '#0114a7', zIndex: 1 }}>
+        가득해지도록.
+      </div>
+    </div>
+  </HeroContainer>,
+  null,
+  <HeroContainer key="t2">
+    <div className={'hero-title'}>재미있는</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'}>돈 모으기</div>
+    </div>
+  </HeroContainer>,
+  <HeroContainer key="t3">
+    <div className={'hero-title'} style={{ color: '#fff' }}>카드 한 장으로 골라쓰는</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'} style={{ color: '#fff' }}>혜택</div>
+    </div>
+  </HeroContainer>,
+  <HeroContainer key="t4">
+    <div className={'hero-title'}>비교할 수록 가벼운</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'}>이자 생활</div>
+    </div>
+  </HeroContainer>,
+  <HeroContainer key="t5">
+    <div className={'hero-title'}>즐거움으로</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'}>가득해지기를</div>
+    </div>
+  </HeroContainer>,
+  <HeroContainer key="t6">
+    <div className={'hero-title'}>일상이 돈이 되는</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'}>마법</div>
+    </div>
+  </HeroContainer>,
+  <HeroContainer key="t7">
+    <div className={'hero-title'}>내 미래를 위한</div>
+    <div className={'hero-title-wrapper'}>
+      <div className={'hero-white-box'} />
+      <div className={'hero-title'}>자산관리도</div>
+    </div>
+  </HeroContainer>,
+  null,
+], [isLoaded]);
+
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => xProgress.set(e.clientX / window.innerWidth);
     window.addEventListener('mousemove', handleMouseMove);
@@ -191,6 +264,9 @@ const PrallaxScrollDemo = () => {
   }, []);
 
   const updateIndex = useCallback((newIdx: number, dir: number) => {
+
+    setExitingIdx(indexRef.current); // 나가는 섹션 기억
+
     // ✅ 헤더 제어: dir과 newIdx 기준으로 명확하게 분리
     if (dir === -1) {
       // 역순(위로): index 1, 2 진입 시 헤더 유지, 그 외(3 등)는 헤더 끔
@@ -201,14 +277,13 @@ const PrallaxScrollDemo = () => {
       }
     } else {
       // 정순(아래로): index 1 진입 시에만 헤더, 나머지는 끔
-      newIdx === 1 ? setHeader(true) : setHeader(false);
+      if(newIdx === 1 ) setHeader(true) 
+	    else  setHeader(false);
     }
 
-    if (newIdx === 1) {
-      stepRef.current = dir === -1 ? 0 : MAX_S1_STEP;
-      lock(2000);
-    } else if (newIdx === 5) {
-      stepRef.current = dir === -1 ? 0 : MAX_S4_STEP;
+    if (newIdx === 1 || newIdx === 3) {
+	const max = newIdx ===3 ? MAX_S4_STEP -1: MAX_S2_STEP;
+      stepRef.current = dir === -1 ? max - 1 : 1 ;
       lock(2000);
     } else {
       stepRef.current = 0;
@@ -229,6 +304,7 @@ const PrallaxScrollDemo = () => {
     lastWheelTimeRef.current = now;
 
     const isNext = e.deltaY > 0;
+    const prevDirection = directionRef.current; 
     directionRef.current = isNext ? 1 : -1;
     setDirection(directionRef.current);
 
@@ -236,16 +312,19 @@ const PrallaxScrollDemo = () => {
 
     if (isNext) {
       // 정순(아래로)
+      if (currIdx === 8) return;
       setHeader(false);
 
-      if (currIdx === 8) return;
-
-      if (currIdx === 1 || currIdx === 3) {
-        const maxStep = currIdx === 1 ? MAX_S1_STEP : MAX_S4_STEP;
+      if (currIdx === 1) { // index 1은 step 소비 없이 바로 다음으로
+        updateIndex(2, 1);
+        return;
+      }
+      if (currIdx === 3) {
+        const maxStep = MAX_S4_STEP;
         if (stepRef.current < maxStep) {
           stepRef.current += 1;
           setInternalStep(stepRef.current);
-          lock(700); // z 애니메이션 0.6s + 여유 100ms
+          lock(700);
           return;
         }
       }
@@ -253,9 +332,9 @@ const PrallaxScrollDemo = () => {
       updateIndex(currIdx + 1, 1);
 
     } else {
-      // 역순(위로)
       if (currIdx === 0) return;
 
+	
       // ✅ 수정: showHeaderBox 대신 showHeaderBoxRef.current 사용 → stale 클로저 문제 없음
       if (!showHeaderBoxRef.current && currIdx !== 1) {
         setHeader(true);
@@ -263,6 +342,10 @@ const PrallaxScrollDemo = () => {
         return;
       }
 
+      if(currIdx === 1&& prevDirection === 1){
+        updateIndex(0, -1);
+        return;
+      }
       if ((currIdx === 1 || currIdx === 3) && stepRef.current > 0) {
         stepRef.current -= 1;
         setInternalStep(stepRef.current);
@@ -282,10 +365,11 @@ const PrallaxScrollDemo = () => {
   const isHeaderShow = showHeaderBox || index === 1;
 
   const innerVariants = {
-    initial: (dir: number) => ({ y: dir > 0 ? '80px' : '-80px', opacity: 0 }),
+    initial: (dir: number) => ({ y: dir> 0 ? '80px' : '-80px', opacity: 0.3}),
     animate: { y: 0, opacity: 1 },
-    exit: (dir: number) => ({ y: dir > 0 ? '-80px' : '80px', opacity: 0 }),
+    exit: (dir: number) => ({ y: dir > 0 ? '-80px' : '80px', opacity: 0.3 }),
   };
+
 
   return (
     <div
@@ -299,9 +383,16 @@ const PrallaxScrollDemo = () => {
       onWheel={handleWheel}
     >
       <Header isShow={isHeaderShow} />
-      <AnimatePresence custom={direction} mode='wait'>
+      <AnimatePresence 
+        custom={direction}
+        initial={false}
+        mode="popLayout" 
+        onExitComplete={() => {
+          if(indexRef.current === 1 && !isLoaded) setIsLoaded(true);
+      	}}>
         <motion.div
           key={index}
+          custom={direction}
           animate={{ opacity: 1 }}
           initial={{ opacity: 0 }}
           style={{
@@ -311,7 +402,11 @@ const PrallaxScrollDemo = () => {
             position: 'absolute',
             top: 0,
           }}
-          transition={{ duration: index === 1 ? 1.8 : 0.6, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ 
+            duration: 0.6, 
+            ease: [0.4, 0, 0.2, 1],
+            delay: exitingIdx === 1 || exitingIdx === 3 ? 1.2 : 0, // 내부 애니 끝날 때까지 대기
+          }}
           onAnimationComplete={() => {
             // enter 애니메이션 완료 시점에 lock 해제 (setTimeout보다 정확)
             isAnimatingRef.current = false;
@@ -323,7 +418,9 @@ const PrallaxScrollDemo = () => {
               color={SECTION_COLORS[index]}
               step={internalStep}
               xProgress={xProgress}
-            />
+            >
+              {SECTION_TITLES[index]}
+            </Section4>
           ) : (
             <GeneralSection color={SECTION_COLORS[index]} idx={index}>
               {index === 8 && (
@@ -347,10 +444,15 @@ const PrallaxScrollDemo = () => {
                   style={{ flex: '1 1 auto', height: 'calc(100dvh - 80px)', backgroundColor: 'olive' }}
                   transition={{ duration: 1.6 }}
                   onAnimationComplete={(definition: string) => {
+                    if(definition === 'animate') {
+                      isAnimatingRef.current = false;
+                      setIsAnimating(false);
+                    }
                     if (definition === 'exit') {
                       // nextIndexRef 필요 시 여기서 처리
                     }
                   }}
+                  
                 >
                   애니메이션 요소
                 </motion.div>

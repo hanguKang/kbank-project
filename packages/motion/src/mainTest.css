@@ -4,8 +4,15 @@
 	height: clamp(60px, 3.96vw, 76px);
 	display:flex; 
 	opacity:0;
-	animation: fadeInUpText1 0.8s ease-out forwards;
+}
+.hero-title:not(.vistied){
+  	animation: fadeInUpText1 0.8s ease-out forwards;
 	animation-delay:0.2s;
+}
+.hero-title.visited{
+	opacity: 1; 
+	transform: translateY(-50%);
+	animation:none;
 }
 @keyframes fadeInUpText1 {
 	0%{
@@ -19,17 +26,21 @@
 	
 }
 
-.text-part1{}
-.text-part2{ animation-delay:0.6s; }
+.text-part2:not(.visited){ animation-delay:0.6s; }
 .text-part3{
 	position:relative; 
 	z-index:1; 
 	opacity:0; 
 	transform:translateY(0);
+}
+.text-part3:not(.visited){
 	animation: fadeInText 0.5s ease-out forwards; 
 	animation-delay: 1.4s; 
 }
-
+.text-part3.visited{
+	opacity:1; 
+	transform: translateY(0);
+}
 @keyframes fadeInText {
 	0%{opacity:0;}
 	100%{opacity:1}
@@ -46,10 +57,15 @@
 	z-index:0; 
 	opacity:0; 
 	transform: translateX(-100vw);
+}
+.white-box:not(.visited){
 	animation: slideInBoxBounce 1.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 	animation-delay:1.2s; 
 }
-
+.white-box.visited{
+	opacity: 1; 
+	transform: translateX(0);
+}
 @keyframes slideInBoxBounce{
 	0%{ opacity:0; transform: translateX(-100vw);}
 	60%{opacity:1; transform: translateX(20px);}
