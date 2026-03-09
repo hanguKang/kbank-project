@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
-import { AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion';
-import type { MotionValue } from 'framer-motion';
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './mainTest.css';
+import Section2 from './Section2';
 
 const SECTION_COLORS = [
   '#0114a7', '#e4edf9', '#4982bf', '#17191e', '#7354b2',
@@ -21,65 +21,13 @@ const HeroContainer = styled.div`
 
 const footerHeight = '300px';
 
-const titleVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: 'easeOut' as const },
-  },
-  exit: {
-    opacity: 0,
-    y: 20,
-    transition: { duration: 0.6, ease: 'easeIn' as const },
-  },
-};
-
-const titleVariants2 = {
-  initial: { opacity: 0, y: 20 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: 'easeOut' as const, delay: 0.4 },
-  },
-  exit: {
-    opacity: 0,
-    y: 20,
-    transition: { duration: 0.6, ease: 'easeIn' as const },
-  },
-};
-
-const whiteBoxVariants = {
-  initial: { opacity: 0, x: '-100vw' },
-  animate: {
-    opacity: [0, 1, 1, 1, 1, 1],
-    x: ['-100vw', '20px', '-8px', '4px', '-2px', '0px'],
-    transition: {
-      duration: 1.3,
-      times: [0, 0.6, 0.75, 0.85, 0.92, 1],
-      ease: 'easeOut' as const,
-      delay: 0.8,
-    },
-  },
-  exit: {
-    opacity: [1, 1, 1, 1, 1, 0],
-    x: ['0px', '-2px', '4px', '-8px', '20px', '-100vw'],
-    transition: {
-      duration: 1.3,
-      times: [0, 0.08, 0.15, 0.25, 0.4, 1],
-      ease: 'easeIn' as const,
-    },
-  },
-};
-
 const Header = ({ isShow }: { isShow: boolean }) => (
   <motion.header
     animate={{ y: isShow ? 0 : -80 }}
     initial={{ y: -80 }}
     style={{
       position: 'fixed',
-      top: 0,
-      left: 0,
+      top: 0, left: 0,
       width: '100%',
       height: 'clamp(60px, 4.17vw, 80px)',
       minWidth: '1080px',
@@ -93,22 +41,17 @@ const Header = ({ isShow }: { isShow: boolean }) => (
   </motion.header>
 );
 
-const Section3 = ({
+const Section3Component = ({
   children,
   step,
-  xProgress,
   color,
   onExitComplete,
 }: {
   children: React.ReactNode;
   step: number;
-  xProgress: MotionValue<number>;
   color: string;
   onExitComplete: () => void;
 }) => {
-  const translateX = useTransform(xProgress, [0, 1], ['5%', '-5%']);
-  console.log(translateX);
-
   useEffect(() => {
     if (step >= 2) {
       const timer = setTimeout(() => onExitComplete(), 600);
@@ -118,14 +61,9 @@ const Section3 = ({
 
   return (
     <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100dvh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-      backgroundColor: color,
+      position: 'relative', width: '100%', height: '100dvh',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden', backgroundColor: color,
     }}>
       <h2
         className={`s3-title ${step >= 1 ? 'up' : ''} ${step >= 2 ? 'fadeout' : ''}`}
@@ -136,11 +74,9 @@ const Section3 = ({
       <div
         className={`s3-card ${step >= 1 ? 'show' : ''} ${step >= 2 ? 'fadeout' : ''}`}
         style={{
-          position: 'absolute',
-          top: '50%',
+          position: 'absolute', top: '50%',
           width: 'clamp(300px, 50vw, 600px)',
-          borderRadius: '1.5rem',
-          overflow: 'hidden',
+          borderRadius: '1.5rem', overflow: 'hidden',
           background: 'rgba(255,255,255,0.15)',
           backdropFilter: 'blur(10px)',
         }}
@@ -154,9 +90,7 @@ const Section3 = ({
 };
 
 const GeneralSection = ({
-  children,
-  idx,
-  color,
+  children, idx, color,
 }: {
   children?: React.ReactNode;
   idx: number;
@@ -165,12 +99,11 @@ const GeneralSection = ({
   <div style={{
     backgroundColor: color,
     boxSizing: 'border-box',
-    padding: idx === 1 ? 'clamp(60px, 16.7vw, 80px) clamp(24px, 8.33vw, 160px) 0 clamp(24px, 8.33vw, 160px)' : '0',
-    width: '100%',
-    height: '100dvh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: idx === 1
+      ? 'clamp(60px, 16.7vw, 80px) clamp(24px, 8.33vw, 160px) 0 clamp(24px, 8.33vw, 160px)'
+      : '0',
+    width: '100%', height: '100dvh',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   }}>
     {children}
     {idx === 0 && (
@@ -191,7 +124,7 @@ const PrallaxScrollDemo = () => {
   const [direction, setDirection] = useState(0);
   const [exitIdx, setExitIdx] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+  const [phase, setPhase] = useState<'enter' | 'exit'>('enter'); // ✅ 추가
 
   const xProgress = useMotionValue<number>(0.5);
   const MAX_S1_STEP = 1;
@@ -209,73 +142,6 @@ const PrallaxScrollDemo = () => {
     showHeaderBoxRef.current = val;
     setShowHeaderBox(val);
   }, []);
-
-  const s3Title = useMemo(() => (
-    <HeroContainer key="t3">
-      <div className="hero-title">카드 한 장으로 골라쓰는</div>
-      <div className="hero-title-wrapper">
-        <div className="hero-white-box" />
-        <div className="hero-title">혜택</div>
-      </div>
-    </HeroContainer>
-  ), []);
-
-  const SECTION_TITLES = useMemo(() => [
-    // index 0 — CSS 애니메이션 유지
-    <HeroContainer key="t0">
-      <div className={`hero-title text-part1 ${isLoaded ? 'visited' : ''}`}>나의 금융생활이</div>
-      <div className={`hero-title text-part2 ${isLoaded ? 'visited' : ''}`}>즐거움으로</div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <div className={`white-box ${isLoaded ? 'visited' : ''}`} />
-        <div className={`hero-title text-part3 ${isLoaded ? 'visited' : ''}`} style={{ position: 'relative', color: SECTION_COLORS[0], zIndex: 1 }}>
-          가득해지도록.
-        </div>
-      </div>
-    </HeroContainer>,
-    null,
-    // index 2
-    <HeroContainer key="t2">
-      <motion.div className="hero-title text-part1" variants={titleVariants} initial="initial" animate="animate" exit="exit">재미있는</motion.div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <motion.div className="white-box" variants={whiteBoxVariants} initial="initial" animate="animate" exit="exit" />
-        <motion.div className="hero-title text-part3" variants={titleVariants2} initial="initial" animate="animate" exit="exit" style={{ position: 'relative', color: SECTION_COLORS[2], zIndex: 1 }}>돈 모으기</motion.div>
-      </div>
-    </HeroContainer>,
-    null,
-    // index 4
-    <HeroContainer key="t4">
-      <motion.div className="hero-title" variants={titleVariants} initial="initial" animate="animate" exit="exit">비교할 수록 가벼운</motion.div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <motion.div className="white-box" variants={whiteBoxVariants} initial="initial" animate="animate" exit="exit" />
-        <motion.div className="hero-title text-part3" variants={titleVariants2} initial="initial" animate="animate" exit="exit" style={{ position: 'relative', color: SECTION_COLORS[4], zIndex: 1 }}>이자 생활</motion.div>
-      </div>
-    </HeroContainer>,
-    // index 5
-    <HeroContainer key="t5">
-      <motion.div className="hero-title" variants={titleVariants} initial="initial" animate="animate" exit="exit">즐거움으로</motion.div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <motion.div className="white-box" variants={whiteBoxVariants} initial="initial" animate="animate" exit="exit" />
-        <motion.div className="hero-title text-part3" variants={titleVariants2} initial="initial" animate="animate" exit="exit" style={{ position: 'relative', color: SECTION_COLORS[5], zIndex: 1 }}>가득해지기를</motion.div>
-      </div>
-    </HeroContainer>,
-    // index 6
-    <HeroContainer key="t6">
-      <motion.div className="hero-title" variants={titleVariants} initial="initial" animate="animate" exit="exit">일상이 돈이 되는</motion.div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <motion.div className="white-box" variants={whiteBoxVariants} initial="initial" animate="animate" exit="exit" />
-        <motion.div className="hero-title text-part3" variants={titleVariants2} initial="initial" animate="animate" exit="exit" style={{ position: 'relative', color: SECTION_COLORS[6], zIndex: 1 }}>마법</motion.div>
-      </div>
-    </HeroContainer>,
-    // index 7
-    <HeroContainer key="t7">
-      <motion.div className="hero-title" variants={titleVariants} initial="initial" animate="animate" exit="exit">내 미래를 위한</motion.div>
-      <div className="hero-title hero-title-wrapper" style={{ position: 'relative', padding: '0 20px' }}>
-        <motion.div className="white-box" variants={whiteBoxVariants} initial="initial" animate="animate" exit="exit" />
-        <motion.div className="hero-title text-part3" variants={titleVariants2} initial="initial" animate="animate" exit="exit" style={{ position: 'relative', color: SECTION_COLORS[7], zIndex: 1 }}>자산관리도</motion.div>
-      </div>
-    </HeroContainer>,
-    null,
-  ], [isLoaded]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => xProgress.set(e.clientX / window.innerWidth);
@@ -304,7 +170,7 @@ const PrallaxScrollDemo = () => {
 
     if (newIdx === 1 || newIdx === 3) {
       const max = newIdx === 3 ? MAX_S3_STEP - 1 : MAX_S1_STEP;
-      stepRef.current = dir === -1 ? max - 1 : (newIdx === 1) ? 1 : 0; // 1 → 0 으로 수정
+      stepRef.current = dir === -1 ? max - 1 : (newIdx === 1) ? 1 : 0;
       lock(2000);
     } else {
       stepRef.current = 0;
@@ -354,16 +220,14 @@ const PrallaxScrollDemo = () => {
       }
 
       if (isGeneralSection) {
-        setIsExiting(true)
-
-        lock(800 + 600)
-
+        // ✅ exit 먼저, 800ms 후 index 변경
+        setPhase('exit');
+        lock(800 + 600);
         setTimeout(() => {
-          updateIndex(currIdx + 1, 1)
-          setIsExiting(false)
-        }, 800)
-
-        return
+          setPhase('enter');
+          updateIndex(currIdx + 1, 1);
+        }, 800);
+        return;
       }
       updateIndex(currIdx + 1, 1);
 
@@ -394,8 +258,13 @@ const PrallaxScrollDemo = () => {
 
       const nextIdx = currIdx - 1;
       if (isGeneralSection) {
+        // ✅ 역방향도 동일
+        setPhase('exit');
         lock(800 + 600);
-        setTimeout(() => updateIndex(nextIdx, -1), 800);
+        setTimeout(() => {
+          setPhase('enter');
+          updateIndex(nextIdx, -1);
+        }, 800);
         return;
       }
       updateIndex(nextIdx, -1);
@@ -413,8 +282,7 @@ const PrallaxScrollDemo = () => {
   return (
     <div
       style={{
-        position: 'relative',
-        width: '100%',
+        position: 'relative', width: '100%',
         height: index === 8 ? `calc(100dvh + ${footerHeight})` : '100dvh',
         overflowY: index === 8 ? 'auto' : 'hidden',
         backgroundColor: SECTION_COLORS[index],
@@ -435,11 +303,9 @@ const PrallaxScrollDemo = () => {
           animate={{ opacity: 1 }}
           initial={{ opacity: 0 }}
           style={{
-            left: 0,
-            right: 0,
+            left: 0, right: 0, top: 0,
             height: index === 8 ? 'auto' : '100dvh',
             position: 'absolute',
-            top: 0,
           }}
           transition={{
             duration: 0.6,
@@ -453,33 +319,58 @@ const PrallaxScrollDemo = () => {
             }
           }}
         >
-          {index === 3 ? (
-            <Section3
+          {/* index 3 — 기존 Section3 유지 */}
+          {index === 3 && (
+            <Section3Component
               color={SECTION_COLORS[index]}
               step={internalStep}
-              xProgress={xProgress}
               onExitComplete={() => updateIndex(4, 1)}
             >
-              {s3Title}
-            </Section3>
-          ) : (
+              <HeroContainer>
+                <div className="hero-title">카드 한 장으로 골라쓰는</div>
+                <div className="hero-title-wrapper">
+                  <div className="hero-white-box" />
+                  <div className="hero-title">혜택</div>
+                </div>
+              </HeroContainer>
+            </Section3Component>
+          )}
+
+          {/* index 2 — ✅ Section2 컴포넌트 */}
+          {index === 2 && <Section2 phase={phase} />}
+
+          {/* 나머지 */}
+          {index !== 2 && index !== 3 && (
             <GeneralSection color={SECTION_COLORS[index]} idx={index}>
               {index === 8 && (
-                <footer style={{ height: footerHeight, backgroundColor: '#000', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <footer style={{
+                  height: footerHeight, backgroundColor: '#000', width: '100%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                }}>
                   footer ...
                 </footer>
               )}
-              {index !== 1 && (
-                <h2 style={{ fontSize: 'clamp(2rem, 8vw, 5rem)', color: '#fff' }}>
-                  {SECTION_TITLES[index]}
-                </h2>
+              {index === 0 && (
+                <HeroContainer>
+                  <div className={`hero-title text-part1${isLoaded ? ' visited' : ''}`}>나의 금융생활이</div>
+                  <div className={`hero-title text-part2${isLoaded ? ' visited' : ''}`}>즐거움으로</div>
+                  <div style={{ position: 'relative', padding: '0 20px' }}>
+                    <div className={`white-box${isLoaded ? ' visited' : ''}`} />
+                    <div
+                      className={`hero-title text-part3${isLoaded ? ' visited' : ''}`}
+                      style={{ position: 'relative', color: SECTION_COLORS[0], zIndex: 1 }}
+                    >
+                      가득해지도록.
+                    </div>
+                  </div>
+                </HeroContainer>
               )}
               {index === 1 && (
                 <motion.div
-                  key={'inner-step-1'}
-                  animate={isExiting ? "exit" : "animate"}
+                  key="inner-step-1"
+                  animate="animate"
                   initial="initial"
-                  //exit="exit"
+                  exit="exit"
                   custom={direction}
                   variants={innerVariants}
                   style={{
@@ -487,14 +378,11 @@ const PrallaxScrollDemo = () => {
                     height: 'calc(100dvh - 80px)',
                     backgroundColor: 'olive',
                     backgroundImage: `
-linear-gradient(transparent 59%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0.95) 61%),
-radial-gradient(circle 240px at 0 45%, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.2) 60%, transparent 70%)
-`,
+                      linear-gradient(transparent 59%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0.95) 61%),
+                      radial-gradient(circle 240px at 0 45%, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.2) 60%, transparent 70%)
+                    `,
                   }}
                   transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  onAnimationComplete={definition => {
-                    if (definition === 'exit') { }
-                  }}
                   onAnimationStart={() => {
                     isAnimatingRef.current = true;
                     setIsAnimating(true);
