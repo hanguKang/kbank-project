@@ -1,101 +1,153 @@
-.hero-title{
-	flex: 0 0  auto; 
-	transform: translateY(-50%);
-	height: clamp(60px, 3.96vw, 76px);
-	display:flex; 
-	opacity:0;
+.hero-title {
+  flex: 0 0 auto;
+  transform: translateY(-50%);
+  height: clamp(60px, 3.96vw, 76px);
+  display: flex;
+  opacity: 0;
 }
-.hero-title:not(.vistied){
-  	animation: fadeInUpText1 0.8s ease-out forwards;
-	animation-delay:0.2s;
+.hero-title:not(.visited) {
+  animation: fadeInUpText1 0.8s ease-out both;
+  animation-delay: 0.2s;
 }
-.hero-title.visited{
-	opacity: 1; 
-	transform: translateY(-50%);
-	animation:none;
+.hero-title.visited {
+  opacity: 1;
+  transform: translateY(-50%);
+  animation: none;
 }
 @keyframes fadeInUpText1 {
-	0%{
-		opacity:0; 
-		transform: translateY(calc(-50% + 20px));
-		}
-	100% {
-		opacity:1; 
-		transform: translateY(-50%);
-	}
-	
+  0%   { opacity: 0; transform: translateY(calc(-50% + 20px)); }
+  100% { opacity: 1; transform: translateY(-50%); }
 }
-
-.text-part2:not(.visited){ animation-delay:0.6s; }
-.text-part3{
-	position:relative; 
-	z-index:1; 
-	opacity:0; 
-	transform:translateY(0);
+.text-part2:not(.visited) { animation-delay: 0.6s; }
+.text-part3 {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(0);
 }
-.text-part3:not(.visited){
-	animation: fadeInText 0.5s ease-out forwards; 
-	animation-delay: 1.4s; 
+.text-part3:not(.visited) {
+  animation: fadeInText 0.5s ease-out both;
+  animation-delay: 1.4s;
 }
-.text-part3.visited{
-	opacity:1; 
-	transform: translateY(0);
+.text-part3.visited {
+  opacity: 1;
+  transform: translateY(0);
 }
 @keyframes fadeInText {
-	0%{opacity:0;}
-	100%{opacity:1}
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+.hero-title-wrapper.white-box.visited {
+  transform: translateY(0);
+}
+.white-box {
+  position: absolute;
+  background-color: #fff;
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  opacity: 0;
+  transform: translateX(-100vw);
+}
+.white-box:not(.visited) {
+  animation: slideInBoxBounce 1.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+  animation-delay: calc(1.2s + 0.6s);
+}
+.white-box.visited {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.white-box{
-	position:absolute; 
-	background-color: #fff; 
-	border-radius:8px;
-	width:100%; 
-	height:100%; 
-	left:0;
-	top:0; 
-	z-index:0; 
-	opacity:0; 
-	transform: translateX(-100vw);
-}
-.white-box:not(.visited){
-	animation: slideInBoxBounce 1.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-	animation-delay:1.2s; 
-}
-.white-box.visited{
-	opacity: 1; 
-	transform: translateX(0);
-}
-@keyframes slideInBoxBounce{
-	0%{ opacity:0; transform: translateX(-100vw);}
-	60%{opacity:1; transform: translateX(20px);}
-	75%{transform: translateX(-8px);}
-	85%{transform: translateX(4px);}
-	92%{transform: translateX(-2px);}
-	100%{opacity:1; transform: translateX(0);}
+.hero-title.visited.reverse {
+  animation: fadeInUpText1 0.8s ease-out both reverse !important;
+  animation-delay: 0s;
 }
 
+.white-box.visited.reverse {
+  animation: slideInBoxBounce 1.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) both reverse !important;
+  animation-delay: 0s;
+}
+
+.text-part3.visited.reverse {
+  animation: fadeInText 0.5s ease-out both reverse !important;
+  animation-delay: 0s;
+}
+
+.hero-title.exiting {
+  animation: fadeInUpText1 0.6s ease-in both reverse !important;
+  animation-delay: 0s !important;
+}
+
+/* white-box 퇴장 - text-part1 퇴장 후 시작 */
+.white-box.exiting {
+  animation: slideInBoxBounce 1.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) both reverse !important;
+  animation-delay: 0.6s !important;
+}
+@keyframes slideInBoxBounce {
+  0%   { opacity: 0; transform: translateX(-100vw); }
+  60%  { opacity: 1; transform: translateX(20px); }
+  75%  { transform: translateX(-8px); }
+  85%  { transform: translateX(4px); }
+  92%  { transform: translateX(-2px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
 .scroll-indicator {
-	position:absolute; 
-	bottom: clamp(28px, 2.08vw, 40px); 
-	left: 50%; 
-	transform: translateX(-50%);
-	width: clamp(40px, 2.86vw, 55px);
-	height: clamp(18px, 1.25vw, 24px);
-	opacity: 0; 
-	animation-delay: 1.8s; 
-	cursor: pointer; 
-	animation: fadeIn 0.8s ease-out forwards, 
-				bounce 2s ease-in-out infinite; 
-	animation-delay: 1.8s, 2.6s;  
+  position: absolute;
+  bottom: clamp(28px, 2.08vw, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(40px, 2.86vw, 55px);
+  height: clamp(18px, 1.25vw, 24px);
+  opacity: 0;
+  cursor: pointer;
+  animation: fadeIn 0.8s ease-out forwards, bounce 2s ease-in-out infinite;
+  animation-delay: 1.8s, 2.6s;
 }
-
 @keyframes fadeIn {
-	0%{ opacity:0}
-	100%{opacity: 1}
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }
-
 @keyframes bounce {
-	0%, 100%{ transform: translateX(-50%) translateY(0);}
-	50% { transform: translateX(-50%) translateY(8px);}
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(8px); }
 }
+.s3-title {
+  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+  transform: translateY(0);
+  opacity: 1;
+}
+.s3-title.up {
+  transform: translateY(-160px);
+  transition: transform 0.6s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.s3-title.fadeout { opacity: 0; }
+.s3-card {
+  transform: translateY(80px);
+  opacity: 0;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+  pointer-events: none;
+}
+.s3-card.show {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.6s ease-out, opacity 0.6s ease;
+  transition-delay: 0.1s;
+  pointer-events: auto;
+}
+.s3-card.fadeout { opacity: 0; }
+.inner-card {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.inner-card.enter { opacity: 1; transform: translateY(0); }
+.inner-card.enter:nth-child(1) { transition-delay: 0s; }
+.inner-card.enter:nth-child(2) { transition-delay: 0.2s; }
+.inner-card.enter:nth-child(3) { transition-delay: 0.4s; }
+.inner-card.exit { opacity: 0; transform: translateY(60px); }
+.inner-card.exit:nth-child(1) { transition-delay: 0s; }
+.inner-card.exit:nth-child(2) { transition-delay: 0.15s; }
+.inner-card.exit:nth-child(3) { transition-delay: 0.3s; }
