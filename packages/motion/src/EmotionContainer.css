@@ -1,0 +1,363 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   EmotionContainer.css
+   원본 오류 수정 목록:
+   - .feeling renew (공백) → .feeling_renew
+   - just\tify-content (탭문자) → justify-content
+   - .dot_7 fill: #4589.19. → #458919
+   - .wheel_19 fill: #fdfb19 → #fdfbd2
+   - .circle wheel::before (공백) → .circle .wheel::before
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── 공통 ────────────────────────────────────────────────────────────────── */
+.content_feeling {
+  font-size: 16px;
+  color: #414141;
+  text-align: center;
+  margin-top: 22px;
+  padding: 0 21px;
+}
+
+.content_feeling .text {
+  display: inline-block;
+}
+
+/* ── feeling_renew 버전 (실제 사용 버전) ─────────────────────────────────── */
+.content_feeling.feeling_renew .text {
+  display: inline-block;
+}
+
+.content_feeling.feeling_renew .edit_box {
+  display: flex;
+  position: relative;
+  height: 62px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  max-width: 280px;
+  margin: 16px auto 0;
+}
+
+.content_feeling.feeling_renew .btn_input_wrap {
+  display: flex;
+  margin-top: 10px;
+  justify-content: center;
+  align-content: center;
+  width: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.content_feeling.feeling_renew .btn_input_wrap .text {
+  color: var(--txt-g1000, #222);
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 5px;
+  word-break: break-all;
+}
+
+.content_feeling.feeling_renew .btn_edit_text {
+  display: inline-block;
+  top: 4px;
+  vertical-align: top;
+  flex: 0 0 21px;
+  align-self: center;
+  position: relative;
+  width: 21px;
+  height: 21px;
+  background-size: contain;
+  background: url(/resource/img/reform/feeling/edit.svg) no-repeat center center;
+}
+
+.content_feeling.feeling_renew .edit_box .btn_delete {
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+  top: 4px;
+  width: 21px;
+  height: 21px;
+  background-size: 21px;
+  background: url('/resource/img/reform/icon/ic_deleteall_21x21.svg') no-repeat center center;
+  flex-shrink: 0;
+  flex-basis: 21px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* 편집됨: 텍스트 색상 변경, 편집 아이콘 숨김 */
+.content_feeling.feeling_renew .btn_input_wrap.edited .text {
+  color: var(--txt-g1000, #222) !important;
+}
+
+.content_feeling.feeling_renew .btn_input_wrap.edited .btn_edit_text {
+  display: none;
+}
+
+/* ── 원형 휠 래퍼 ────────────────────────────────────────────────────────── */
+.content_feeling.feeling_renew .circle_wheel_wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;      /* 276px SVG + padding 여유 */
+  overflow: visible;  /* 잘림 방지 */
+  padding-top: 35px;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%); /* 정확한 중앙 정렬 */
+  width: 276px;
+  height: 276px;
+}
+
+/* ── SVG 링 컨테이너 ─────────────────────────────────────────────────────── */
+.content_feeling.feeling_renew .circle_wheel_inner .circle_line {
+  position: absolute;
+  width: 276px;
+  height: 276px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* new-color 모드: border 제거 (SVG가 직접 색상 담당) */
+.content_feeling.feeling_renew .circle_wheel_inner.new-color .circle_line {
+  border: none;
+}
+
+/* SVG 닷: 터치 영역 확장을 위해 stroke-width 활용 */
+.content_feeling.feeling_renew .circle_wheel_inner.new-color .circle_line svg circle {
+  stroke: transparent;
+  stroke-width: 30;
+  cursor: pointer;
+}
+
+/* ── 드래그 핸들 원 ──────────────────────────────────────────────────────── */
+.content_feeling.feeling_renew .circle_wheel_inner .circle {
+  /* SVG 링과 완전히 겹치도록 absolute */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 276px;
+  height: 276px;
+  border-radius: 50%;
+  transform: rotate(180deg); /* 핸들 시작 위치: 왼쪽(9시) */
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner.new-color .circle {
+  pointer-events: none;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner .circle .wheel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* SVG 링 중앙 반지름 = 138(외곽) - 10(링두께 절반) = 128px
+     핸들 중심을 128px 지점에 → margin-left = 128 - 핸들절반(18.5) = 109.5px */
+  margin-left: 109.5px;
+  margin-top: -18.5px;
+  width: 37px;
+  height: 37px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: grab;
+  pointer-events: auto;
+  position: absolute;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner.new-color .circle .wheel {
+  pointer-events: auto;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner .circle .wheel:active {
+  cursor: grabbing;
+}
+
+/* 핸들 시각 요소: 흰 원 배경 */
+.content_feeling.feeling_renew .circle_wheel_inner .circle .wheel::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 37px;
+  height: 37px;
+  margin-top: -18.5px;
+  margin-left: -18.5px;
+  border-radius: 50%;
+  box-shadow: 0px 2px 8px 0px rgba(50, 50, 50, 0.2);
+  background-color: var(--color-w100, #ffffff);
+  z-index: 0;
+}
+
+/* 화살표 span: circle 회전 상쇄 + 90도로 항상 접선 방향 유지 */
+.content_feeling.feeling_renew .circle_wheel_inner .circle .wheel .wheel-arrow {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  background: url(/resource/img/reform/icon/ico_handle_arrow.svg) no-repeat center center;
+  background-size: contain;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── 이미지 preloader ────────────────────────────────────────────────────── */
+.content_feeling.feeling_renew .preloader-wrap {
+  width: 220px;
+  height: 220px;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.content_feeling.feeling_renew .circle_wheel_inner.new-color .preloader-wrap {
+  pointer-events: none;
+}
+
+/* 기본: 숨김 */
+.content_feeling.feeling_renew .preloader-wrap .feeling-img {
+  width: 220px;
+  height: 220px;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(0.9);
+  visibility: hidden;
+  transition: none;
+}
+
+/* on: 표시 + 튀어오르는 애니메이션 */
+.content_feeling.feeling_renew .preloader-wrap .feeling-img.on {
+  transition: 0.3s transform cubic-bezier(0.75, -0.5, 0, 2.75);
+  transform: scale(1);
+  visibility: visible;
+}
+
+/* ── no-drag ──────────────────────────────────────────────────────────────── */
+.no-drag {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── 파티클 ───────────────────────────────────────────────────────────────── */
+.particle_wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.particle_inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.particle_inner div {
+  position: absolute;
+  font-size: 24px;
+  top: 50%;
+  left: 50%;
+}
+
+/* ── 툴팁 ─────────────────────────────────────────────────────────────────── */
+.content_feeling.feeling_renew .tooltip-focus-group {
+  display: inline-block;
+  position: absolute;
+  opacity: 1;
+  transition: opacity 0.5s;
+  left: 50%;
+}
+
+.content_feeling.feeling_renew .tooltip-focus-group.off {
+  opacity: 0;
+}
+
+.content_feeling.feeling_renew .tooltip-area {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% - 20px);
+  background: var(--color-in700, #5b67ff);
+  padding: 12px 16px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.content_feeling.feeling_renew .tooltip-area::after {
+  content: '';
+  bottom: -8px;
+  position: absolute;
+  left: calc(50% - 9px);
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  background: var(--color-in700, #5b67ff);
+}
+
+.content_feeling.feeling_renew .tooltip-area .txt {
+  font-size: 14px;
+  line-height: 1.42857;
+  font-weight: bold;
+  color: var(--color-w100, #ffffff);
+  white-space: nowrap;
+}
+
+/* ── blind (스크린리더 전용) ─────────────────────────────────────────────── */
+.blind {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   휠 링 fill 색상 (index 0 ~ 19)
+   SVG path className을 wheel_{n}으로 교체하여 색상 변경
+───────────────────────────────────────────────────────────────────────────── */
+.wheel_0  { fill: #fcfdca; } .dot_0  { fill: #a09210; }
+.wheel_1  { fill: #f9fdcb; } .dot_1  { fill: #8c9887; }
+.wheel_2  { fill: #f1fdcd; } .dot_2  { fill: #71991b; }
+.wheel_3  { fill: #e9fce5; } .dot_3  { fill: #479f50; }
+.wheel_4  { fill: #e3fbed; } .dot_4  { fill: #3a9f7b; }
+.wheel_5  { fill: #defaf5; } .dot_5  { fill: #1798a0; }
+.wheel_6  { fill: #e0f7fc; } .dot_6  { fill: #0e93cd; }
+.wheel_7  { fill: #e3f3ff; } .dot_7  { fill: #458919; } /* 원본 오류 #4589.19. → #458919 */
+.wheel_8  { fill: #e4edff; } .dot_8  { fill: #537ff1; }
+.wheel_9  { fill: #eceeff; } .dot_9  { fill: #726ffc; }
+.wheel_10 { fill: #f7eeff; } .dot_10 { fill: #9f69f4; }
+.wheel_11 { fill: #fdeeff; } .dot_11 { fill: #cd57ea; }
+.wheel_12 { fill: #ffeefa; } .dot_12 { fill: #e354b3; }
+.wheel_13 { fill: #ffeef3; } .dot_13 { fill: #e8587c; }
+.wheel_14 { fill: #ffeceb; } .dot_14 { fill: #e95858; }
+.wheel_15 { fill: #fff8e9; } .dot_15 { fill: #e3642e; }
+.wheel_16 { fill: #fff2de; } .dot_16 { fill: #d67216; }
+.wheel_17 { fill: #fff5db; } .dot_17 { fill: #be810d; }
+.wheel_18 { fill: #fdf9d2; } .dot_18 { fill: #af8800; }
+.wheel_19 { fill: #fdfbd2; } .dot_19 { fill: #a88e07; } /* 원본 오류 #fdfb19 → #fdfbd2 */

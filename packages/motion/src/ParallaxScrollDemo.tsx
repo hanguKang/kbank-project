@@ -1,5 +1,4 @@
-import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
-import type { Variants } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValue, Variants, Easing } from 'framer-motion';
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 
 import HeroSection from './HeroSection';
@@ -91,17 +90,17 @@ const SimpleSection = ({ idx, color }: { idx: number; color: string }) => (
 );
 
 const GeneralSection = ({
-  children, idx, color, style,
+  children, idx, color,
 }: {
   children?: React.ReactNode;
   idx: number;
   color: string;
-  style?: React.CSSProperties;
 }) => {
   const paddingTop1 = 'clamp(60px, 16.7vw, 80px)';
   const paddingSide = 'clamp(24px, 8.33vw, 160px)';
   return (
     <div style={{
+      position: 'relative',
       backgroundColor: color,
       boxSizing: 'border-box',
       padding: idx === 1 ? `${paddingTop1} ${paddingSide} 0 ${paddingSide}` : '0',
@@ -110,7 +109,6 @@ const GeneralSection = ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      ...style,
     }}>
       {children}
       {idx === 0 && (
@@ -145,7 +143,7 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const WHEEL_COOLDOWN = 800;
 
-
+  const easing = [0.4, 0, 0.2, 1] as unknown as Easing;
 
   // ── wheel 네이티브 이벤트 차단 ──────────────────────────────
   const wheelHandler = useCallback((e: WheelEvent) => {
@@ -189,11 +187,8 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
   }, []);
 
   const unlock = useCallback(() => {
-    if (!isAnimatingRef.current) {
-      console.log('======== unlock 무시 (이미 해제됨) ========');
-      return;
-    }
-    console.log('======== unlock 호출 ========');
+    console.log('%c======== unlock 호출 ========', 'color: #4ade80; font-weight: bold');
+    console.trace('unlock 호출 위치');
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
     isAnimatingRef.current = false;
     setIsAnimating(false);
@@ -202,7 +197,6 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
   // ── updateIndex ──────────────────────────────────────────────
   const updateIndex = useCallback((newIdx: number, dir: number) => {
     console.log('======== updateIndex ========', '현재 index', newIdx, '방향', dir);
-    setPhase('enter');  // ← 항상 enter로 리셋
     if (dir === -1) {
       if (newIdx === 2 || newIdx === 1) setHeader(true);
       else setHeader(false);
@@ -253,8 +247,8 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
         setPhase('exit');
         lock(delay + 600);
         setTimeout(() => {
-          updateIndex(nextIdx, 1);
           setPhase('enter');
+          updateIndex(nextIdx, 1);
         }, delay);
         return;
       }
@@ -306,11 +300,11 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
 
   const sect1CompoItemVariants: Variants = {
     initial: (dir: number) => ({ y: dir > 0 ? '60px' : '-60px', opacity: 0 }),
-    animate: { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] } },
+    animate: { y: 0, opacity: 1, transition: { duration: 0.6, ease: easing } },
     exit: (dir: number) => ({ y: dir > 0 ? '-60px' : '60px', opacity: 0, transition: { duration: 1 } }),
   };
 
-
+  const cardEasing = [0.25, 0.46, 0.45, 0.94] as unknown as Easing;
   const sectCardStepVariants: Variants = {
     initial: {},
     animate: { transition: { staggerChildren: 0.33 } },
@@ -318,7 +312,7 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
   };
   const sectCardItemStepVariants: Variants = {
     initial: { y: '60px', opacity: 0 },
-    animate: { y: 0, opacity: 1, transition: { duration: 1, ease: [0.25, 0.46, 0.45, 0.94] } },
+    animate: { y: 0, opacity: 1, transition: { duration: 1, ease: cardEasing } },
     exit: { y: '60px', opacity: 0, transition: { duration: 1 } },
   };
 
@@ -352,33 +346,6 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
     )),
   ], [isLoaded, direction, phase, internalStep, unlock, updateIndex]);
 
-  // SECTIONS 배열 제거하고 현재 index에 맞는 섹션만 렌더링
-  const renderSection = () => {
-    switch (index) {
-      case 0: return <HeroSection isLoaded={isLoaded} />;
-      case 1: return <MainSection
-        direction={direction}
-        sect1CompoVariants={sect1CompoVariants}
-        sect1CompoItemVariants={sect1CompoItemVariants}
-        onUnlock={unlock}
-      />;
-      case 2: return <Section02
-        phase={phase}
-        sectCardStepVariants={sectCardStepVariants}
-        sectCardItemStepVariants={sectCardItemStepVariants}
-        onUnlock={unlock}
-      />;
-      case 3: return <Section03
-        phase={phase}
-        direction={direction}
-        internalStep={internalStep}
-        onExitComplete={() => updateIndex(4, 1)}
-        onUnlock={unlock}
-      />;
-      default: return <SimpleSection idx={index} color={SECTION_COLORS[index]} />;
-    }
-  };
-
   return (
     <>
       <style>{css}</style>
@@ -394,6 +361,7 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
         <HeaderWrapper isShow={isHeaderShow} />
         <AnimatePresence
           custom={direction}
+          initial={false}
           mode="wait"
           onExitComplete={() => {
             if (indexRef.current === 1 && !isLoaded) setIsLoaded(true);
@@ -414,7 +382,16 @@ const ParallaxScrollDemo = React.memo(function ParallaxScrollDemo() {
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           >
             <GeneralSection color={SECTION_COLORS[index]} idx={index}>
-              {renderSection()}
+              {index === 0 ? SECTIONS[0] : SECTIONS[index]}
+              {index === 9 && (
+                <footer style={{
+                  height: footerHeight, backgroundColor: '#000',
+                  width: '100%', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', color: '#fff',
+                }}>
+                  footer ...
+                </footer>
+              )}
             </GeneralSection>
           </motion.div>
         </AnimatePresence>

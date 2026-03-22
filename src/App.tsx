@@ -7,7 +7,13 @@
 // import { ListComponent } from '@common/ListComponent';
 // import { ParallaxTransition } from '@motion/ParallaxTransition';
 // import { useState } from 'react';
-import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
+//import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
+import EmotionContainer from '@motion/EmotionContainer';
+
+function App() {
+  return <EmotionContainer />;
+}
+export default App;
 
 // function App() {
 //   const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
@@ -48,7 +54,7 @@ import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
 //       {/* 2. Parallax Transition Area */}
 //       <ParallaxTransition
 //         headerHeight={headerHeight}
-        
+
 //         // Section 1 Content: imgWrapper 내부의 콘텐츠
 //         section1Content={
 //           <Section 
@@ -109,7 +115,7 @@ import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
 //             />
 //           </Section>
 //         }
-        
+
 //         // Header Title 'show' 클래스 부착 로직
 //         onScrollEnd={(isEnd) => {
 //           setShowHeaderTitle(isEnd);
@@ -152,7 +158,7 @@ import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
 // }
 // export default App;
 
-function App() {
-  return <ParallaxScrollDemo />;
-}
-export default App;
+// function App() {
+//   return <ParallaxScrollDemo />;
+// }
+// export default App;
