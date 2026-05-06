@@ -8,12 +8,28 @@
 // import { ParallaxTransition } from '@motion/ParallaxTransition';
 // import { useState } from 'react';
 //import ParallaxScrollDemo from '@motion/PrallaxScrollDemo';
-import EmotionContainer from '@motion/EmotionContainer';
+//import EmotionContainer from '@motion/EmotionContainer';
+//import MainLayout from '@motion/MainLayout';
+import PayHomeZeroPayAnimation from '@motion/PayHomeZeroPayAnimation';
 
 function App() {
-  return <EmotionContainer />;
+  return <PayHomeZeroPayAnimation />;
 }
 export default App;
+
+
+
+// function App() {
+//   return <MainLayout />;
+// }
+// export default App;
+
+
+// function App() {
+//   return <EmotionContainer />;
+// }
+// export default App;
+
 
 // function App() {
 //   const imageUrl1 = 'https://img.freepik.com/free-vector/book-open-with-fairytale-castle-unicorn_24640-46166.jpg?semt=ais_hybrid&w=740&q=80';
